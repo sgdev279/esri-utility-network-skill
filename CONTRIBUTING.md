@@ -81,7 +81,7 @@ The server exists in two places that must stay identical:
 
 ## Releases
 
-Maintainers bump versions (`plugin.json` for the skill; `pyproject.toml` and `server.json` for the server), move "Unreleased" notes to a version heading in `CHANGELOG.md`, then push a tag `vX.Y.Z`. The release workflow publishes the `.skill` file, the PyPI package and the MCP Registry entry.
+Maintainers bump versions (`plugin.json` for the skill; `pyproject.toml` and `server.json` for the server), move "Unreleased" notes to a version heading in `CHANGELOG.md`, then create a release on GitHub (Releases → Draft a new release → new tag `vX.Y.Z` on `main` → Publish). The release workflow publishes the `.skill` file, the PyPI package and the MCP Registry entry.
 
 ## Ground rules
 

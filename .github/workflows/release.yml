@@ -1,7 +1,7 @@
 name: Release
 on:
-  push:
-    tags: ["v*"]
+  release:
+    types: [published]   # publish a release in GitHub's UI to ship a version
 
 permissions:
   contents: write
@@ -21,11 +21,10 @@ jobs:
           cd plugins/utility-network/skills
           zip -r ../../../utility-network.skill utility-network -x "*/__pycache__/*"
 
-      - name: GitHub release with .skill attached
+      - name: Attach the .skill file to the release
         uses: softprops/action-gh-release@v2
         with:
           files: utility-network.skill
-          generate_release_notes: true
 
       - name: Build MCP package
         run: pip install build && python -m build mcp-server
