@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.YOUR_GITHUB_USER/utility-network-mcp",
+  "name": "io.github.sgdev279/utility-network-mcp",
   "description": "Esri ArcGIS Utility Network tools: trace, subnetworks, dirty areas, associations",
   "repository": {
-    "url": "https://github.com/YOUR_GITHUB_USER/esri-utility-network-skill",
+    "url": "https://github.com/sgdev279/esri-utility-network-skill",
     "source": "github",
     "subfolder": "mcp-server"
   },

@@ -13,7 +13,7 @@ Expert knowledge of the **Esri ArcGIS Utility Network** for Claude and other AI 
 
 **Claude Code (plugin marketplace)**
 ```bash
-claude plugin marketplace add YOUR_GITHUB_USER/esri-utility-network-skill
+claude plugin marketplace add sgdev279/esri-utility-network-skill
 claude plugin install utility-network@esri-utility-network
 ```
 

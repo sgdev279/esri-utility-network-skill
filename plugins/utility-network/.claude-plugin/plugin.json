@@ -5,8 +5,8 @@
   "author": {
     "name": "Sayanta Ghosh"
   },
-  "homepage": "https://github.com/YOUR_GITHUB_USER/esri-utility-network-skill",
-  "repository": "https://github.com/YOUR_GITHUB_USER/esri-utility-network-skill",
+  "homepage": "https://github.com/sgdev279/esri-utility-network-skill",
+  "repository": "https://github.com/sgdev279/esri-utility-network-skill",
   "license": "MIT",
   "keywords": ["esri", "arcgis", "utility-network", "gis", "mcp", "electric", "gas", "water", "telecom"]
 }

@@ -1,6 +1,6 @@
 # utility-network-mcp
 
-<!-- mcp-name: io.github.YOUR_GITHUB_USER/utility-network-mcp -->
+<!-- mcp-name: io.github.sgdev279/utility-network-mcp -->
 
 An [MCP](https://modelcontextprotocol.io) server that lets AI assistants (Claude Desktop, Claude Code, VS Code, Cursor, and others) work with an **Esri ArcGIS Utility Network** published on ArcGIS Enterprise — run traces, find dirty subnetworks, summarise errors, and inspect associations through the `UtilityNetworkServer` REST API.
 
