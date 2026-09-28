@@ -11,8 +11,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -33,6 +33,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: mcp-server/dist/
+          skip-existing: true   # re-running a release shouldn't fail on an already-uploaded version
 
       - name: Publish to the MCP Registry
         run: |
@@ -40,4 +41,13 @@ jobs:
           sleep 60   # let PyPI serve the new release before the registry verifies it
           cd mcp-server
           ../mcp-publisher login github-oidc
-          ../mcp-publisher publish
+          if ! out=$(../mcp-publisher publish 2>&1); then
+            echo "$out"
+            if echo "$out" | grep -q "duplicate version"; then
+              echo "This version is already in the MCP Registry - nothing to do."
+            else
+              exit 1
+            fi
+          else
+            echo "$out"
+          fi
