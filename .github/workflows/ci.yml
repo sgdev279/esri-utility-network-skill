@@ -29,14 +29,12 @@ jobs:
           assert "<" not in fm["description"] and ">" not in fm["description"]
           print("frontmatter ok")
           PY
-      - name: Referenced files exist
+      - name: Lint reference files
+        run: python tools/lint_references.py
+      - name: Freshness report is up to date
         run: |
-          cd plugins/utility-network/skills/utility-network
-          missing=0
-          for f in $(grep -ohE '(pro-help|rest-api|js-api|pro-sdk|arcpy|experience-builder|github-ecosystem|mcp)/[0-9]{2}-[a-z0-9-]+\.md' -r SKILL.md references | sort -u); do
-            [ -f "references/$f" ] || { echo "missing references/$f"; missing=1; }
-          done
-          exit $missing
+          python tools/freshness_report.py
+          git diff --exit-code docs/FRESHNESS.md || (echo "::warning::docs/FRESHNESS.md is out of date — run python tools/freshness_report.py and commit"; true)
       - name: MCP server copies are identical
         run: cmp plugins/utility-network/skills/utility-network/scripts/un_mcp_server.py mcp-server/src/utility_network_mcp/server.py
       - name: Script self-tests

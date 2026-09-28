@@ -1,0 +1,48 @@
+name: Freshness
+on:
+  schedule:
+    - cron: "30 3 1 * *"   # 03:30 UTC on the 1st of every month
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Regenerate docs/FRESHNESS.md
+        id: fresh
+        run: |
+          python tools/freshness_report.py | tee out.txt
+          if python tools/freshness_report.py --check > /dev/null; then echo "needs_review=false" >> "$GITHUB_OUTPUT"; else echo "needs_review=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Commit the report if it changed
+        run: |
+          if ! git diff --quiet docs/FRESHNESS.md; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+            git add docs/FRESHNESS.md
+            git commit -m "Update content freshness report"
+            git push
+          fi
+      - name: Open a review issue when content is stale or undated
+        if: steps.fresh.outputs.needs_review == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const open = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'freshness' });
+            if (open.data.length) { core.info('Freshness issue already open'); return; }
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title: 'Monthly content review: stale or undated reference files',
+              labels: ['freshness'],
+              body: 'Some reference files are stale (reviewed over a year ago) or undated. ' +
+                    'See [docs/FRESHNESS.md](../blob/main/docs/FRESHNESS.md) for the list and how to review a file.'
+            });

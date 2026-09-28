@@ -1,0 +1,55 @@
+name: Add UN knowledge
+description: Share a fact, gotcha, workflow or doc page the skill should know
+title: "[Knowledge] "
+labels: ["knowledge"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for teaching the skill something. Plain notes are fine — a maintainer turns them into a reference file.
+        Please don't paste passwords, tokens, internal URLs or customer data.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Concepts / data model
+        - Configuration & administration (Pro)
+        - Tracing
+        - Subnetworks, topology, dirty areas & errors
+        - Asset packages, Foundations, migration
+        - Versions, upgrades, compatibility
+        - Publishing, licensing, permissions
+        - REST API
+        - JavaScript SDK
+        - Pro SDK (C#)
+        - arcpy
+        - Experience Builder / Field Maps / other apps
+        - MCP / AI agents
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: knowledge
+    attributes:
+      label: What should the skill know?
+      description: The fact, procedure or gotcha, in your own words. Include symptoms, causes and the fix if it's a problem you solved.
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions it applies to
+      placeholder: "e.g. Pro 3.5, Enterprise 11.5, UN dataset v7, JS SDK 4.33"
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources
+      description: Esri doc pages, Esri Community threads, support articles, or "tested myself".
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example question it should answer (optional)
+      placeholder: "e.g. Why does Update Subnetwork say the subnetwork is clean?"

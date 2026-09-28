@@ -1,0 +1,36 @@
+name: Correction / outdated content
+description: Something in the skill is wrong, incomplete or out of date
+title: "[Correction] "
+labels: ["correction"]
+body:
+  - type: input
+    id: file
+    attributes:
+      label: File
+      placeholder: "e.g. references/rest-api/02-topology-and-subnetwork-management-operations.md"
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What's wrong
+      description: Quote or describe the statement.
+    validations:
+      required: true
+  - type: textarea
+    id: right
+    attributes:
+      label: What's correct
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: "e.g. changed at Enterprise 12.1"
+  - type: input
+    id: source
+    attributes:
+      label: Source link
+    validations:
+      required: true

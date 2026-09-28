@@ -1,0 +1,23 @@
+name: Bug in the MCP server or scripts
+description: Something in utility-network-mcp or the helper scripts doesn't work
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Command or tool call, and the error. Remove tokens, passwords and internal URLs.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "utility-network-mcp 0.1.0, Python 3.11, Enterprise 11.5, UN v7, Claude Desktop"
+    validations:
+      required: true

@@ -1,6 +1,6 @@
 # Utility Network — REST `traceConfiguration`: Full Schema (Deep Reference)
-*Source: ArcGIS REST API "Trace (Utility Network Server)" reference. Last
-reviewed: 2026-09-28. Complements `01-utility-network-server-and-trace.md`,
+*Source: ArcGIS REST API "Trace (Utility Network Server)" reference.
+Last reviewed: 2026-09-28. Complements `01-utility-network-server-and-trace.md`,
 which covers the top-level trace request and the boolean flags.*
 
 Use this when hand-writing or debugging a `traceConfiguration` with
