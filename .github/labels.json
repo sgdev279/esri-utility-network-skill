@@ -1,0 +1,6 @@
+[
+  {"name": "knowledge", "color": "0E8A16", "description": "New Utility Network knowledge for the skill"},
+  {"name": "correction", "color": "D93F0B", "description": "Something in the skill is wrong or outdated"},
+  {"name": "freshness", "color": "FBCA04", "description": "Reference files due for review"},
+  {"name": "mcp-server", "color": "00BCD4", "description": "utility-network-mcp package"}
+]
