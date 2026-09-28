@@ -1,0 +1,49 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install "mcp[cli]<2" requests pyyaml build
+      - name: JSON manifests are valid
+        run: |
+          for f in .claude-plugin/marketplace.json plugins/utility-network/.claude-plugin/plugin.json mcp-server/server.json plugins/utility-network/skills/utility-network/evals/*.json; do
+            python -m json.tool "$f" > /dev/null && echo "ok $f"
+          done
+      - name: SKILL.md frontmatter
+        run: |
+          python - <<'PY'
+          import yaml
+          s = open("plugins/utility-network/skills/utility-network/SKILL.md").read()
+          fm = yaml.safe_load(s.split("---")[1])
+          assert fm["name"] == "utility-network"
+          assert 0 < len(fm["description"]) <= 1024, len(fm["description"])
+          assert "<" not in fm["description"] and ">" not in fm["description"]
+          print("frontmatter ok")
+          PY
+      - name: Referenced files exist
+        run: |
+          cd plugins/utility-network/skills/utility-network
+          missing=0
+          for f in $(grep -ohE '(pro-help|rest-api|js-api|pro-sdk|arcpy|experience-builder|github-ecosystem|mcp)/[0-9]{2}-[a-z0-9-]+\.md' -r SKILL.md references | sort -u); do
+            [ -f "references/$f" ] || { echo "missing references/$f"; missing=1; }
+          done
+          exit $missing
+      - name: MCP server copies are identical
+        run: cmp plugins/utility-network/skills/utility-network/scripts/un_mcp_server.py mcp-server/src/utility_network_mcp/server.py
+      - name: Script self-tests
+        run: |
+          cd plugins/utility-network/skills/utility-network/scripts
+          python un_mcp_server.py --selftest
+          python decode_dirty_status.py 0 10 40
+          python association_types.py --table
+      - name: Build MCP package
+        run: python -m build mcp-server

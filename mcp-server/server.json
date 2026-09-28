@@ -1,0 +1,67 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.YOUR_GITHUB_USER/utility-network-mcp",
+  "description": "Esri ArcGIS Utility Network tools: trace, subnetworks, dirty areas, associations",
+  "repository": {
+    "url": "https://github.com/YOUR_GITHUB_USER/esri-utility-network-skill",
+    "source": "github",
+    "subfolder": "mcp-server"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "utility-network-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "UN_FEATURE_SERVICE_URL",
+          "description": "Utility network FeatureServer URL (ends with /FeatureServer)",
+          "isRequired": true
+        },
+        {
+          "name": "UN_PORTAL_URL",
+          "description": "Portal URL, for username/password or OAuth client-credential auth",
+          "isRequired": false
+        },
+        {
+          "name": "UN_CLIENT_ID",
+          "description": "OAuth app client id (client_credentials)",
+          "isRequired": false
+        },
+        {
+          "name": "UN_CLIENT_SECRET",
+          "description": "OAuth app client secret",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "UN_USERNAME",
+          "description": "Portal username (generateToken)",
+          "isRequired": false
+        },
+        {
+          "name": "UN_PASSWORD",
+          "description": "Portal password",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "UN_TOKEN",
+          "description": "Pre-issued ArcGIS token",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "UN_ALLOW_WRITES",
+          "description": "Set to true to enable validate topology / update subnetwork tools",
+          "isRequired": false
+        }
+      ],
+      "runtimeHint": "uvx"
+    }
+  ]
+}

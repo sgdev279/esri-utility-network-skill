@@ -1,0 +1,82 @@
+[
+  {
+    "query": "why does update subnetwork say the subnetwork is clean and do nothing? i edited a bunch of switches in DEFAULT yesterday",
+    "should_trigger": true
+  },
+  {
+    "query": "our error inspector shows 12k errors after enable topology on the migrated gas data, error code 36 mostly. where do i even start",
+    "should_trigger": true
+  },
+  {
+    "query": "write a JS snippet that runs our 'Downstream Protective' named trace config from a clicked feature in the web map",
+    "should_trigger": true
+  },
+  {
+    "query": "can I get Claude to query our utility network through MCP? we're on Enterprise 11.4",
+    "should_trigger": true
+  },
+  {
+    "query": "Apply Asset Package fails with 'dataset owner' error, pro 3.5, sde connection as gisadmin",
+    "should_trigger": true
+  },
+  {
+    "query": "how do tiers work in a hierarchical domain network vs partitioned, for a water system with pressure zones",
+    "should_trigger": true
+  },
+  {
+    "query": "C# add-in: how do I get all features contained in a vault using the Pro SDK associations API",
+    "should_trigger": true
+  },
+  {
+    "query": "need an AI agent that tells dispatch which customers lose power if a fuse opens, data lives in our Esri electric network",
+    "should_trigger": true
+  },
+  {
+    "query": "exportSubnetwork with exportAcknowledgement=true errors on my branch version - why",
+    "should_trigger": true
+  },
+  {
+    "query": "is Field Maps ok with version 8 of the network dataset? thinking of upgrading for telecom",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I solve a route with 5 stops using the ArcGIS routing service in Python",
+    "should_trigger": false
+  },
+  {
+    "query": "set up a trace network in ArcGIS Pro for our stream hydrology data and run a downstream trace",
+    "should_trigger": false
+  },
+  {
+    "query": "our geometric network in ArcMap 10.8 has flow direction errors, how do I fix them in ArcMap",
+    "should_trigger": false
+  },
+  {
+    "query": "what's the UN security council's position on the recent resolution",
+    "should_trigger": false
+  },
+  {
+    "query": "design an electrical distribution network for a new housing development, load calc and transformer sizing",
+    "should_trigger": false
+  },
+  {
+    "query": "build an MCP server that exposes our Postgres customer database to Claude",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I use the ArcGIS Location Platform MCP to geocode 500 addresses",
+    "should_trigger": false
+  },
+  {
+    "query": "create a feature class with subtypes and domains for street lights in a file geodatabase",
+    "should_trigger": false
+  },
+  {
+    "query": "parcel fabric: how do I record a new subdivision plan in Pro",
+    "should_trigger": false
+  },
+  {
+    "query": "network analyst service area for fire stations, 4 minute drive time",
+    "should_trigger": false
+  }
+]

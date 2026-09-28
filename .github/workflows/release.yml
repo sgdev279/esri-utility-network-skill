@@ -1,0 +1,43 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  id-token: write   # PyPI trusted publishing + MCP Registry OIDC
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Package the skill
+        run: |
+          cd plugins/utility-network/skills
+          zip -r ../../../utility-network.skill utility-network -x "*/__pycache__/*"
+
+      - name: GitHub release with .skill attached
+        uses: softprops/action-gh-release@v2
+        with:
+          files: utility-network.skill
+          generate_release_notes: true
+
+      - name: Build MCP package
+        run: pip install build && python -m build mcp-server
+
+      - name: Publish to PyPI (trusted publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: mcp-server/dist/
+
+      - name: Publish to the MCP Registry
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          cd mcp-server
+          ../mcp-publisher login github-oidc
+          ../mcp-publisher publish

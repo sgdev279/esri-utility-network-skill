@@ -1,0 +1,90 @@
+{
+  "skill_name": "utility-network",
+  "evals": [
+    {
+      "id": 1,
+      "name": "mcp-agent-for-electric-un",
+      "prompt": "We run ArcGIS Enterprise 11.5 with an electric utility network (dataset v7). I want Claude Desktop to answer things like 'what customers are downstream of breaker XYZ' and 'which subnetworks are dirty'. How do I hook it up? Esri's MCP thing?",
+      "expected_output": "Recommends a route (custom UN MCP server as default, Esri overlay limits explained), tool list, setup, safety, licensing.",
+      "files": [],
+      "assertions": [
+        "States that Esri's MCP in ArcGIS Enterprise beta has no built-in utility-network tools (trace etc.)",
+        "Recommends a specific route and explains why (e.g. custom MCP server over UtilityNetworkServer REST, or GP-task tools)",
+        "Lists concrete tools including a downstream trace tool and a dirty subnetwork / subnetworks query",
+        "Separates read-only tools from write tools and requires confirmation or opt-in for writes",
+        "Mentions that trace/query do not need the Advanced Editing user type extension while validate/update do",
+        "Gives setup details: auth method and an MCP client configuration block or env vars",
+        "Flags beta/date caveats for Esri MCP"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "apply-asset-package-failure",
+      "prompt": "Apply Asset Package keeps failing on our enterprise gdb when I try to add the gas domain to our existing water UN. Pro 3.5, Enterprise 11.3. What am I doing wrong?",
+      "expected_output": "Troubleshooting format; four prerequisites (maps closed, topology disabled, Pro/UN version match, owners + DEFAULT); notes additive behaviour.",
+      "files": [],
+      "assertions": [
+        "Uses a troubleshooting structure (likely cause, checks in order, fix)",
+        "Mentions network topology must be disabled",
+        "Mentions closing all maps in the project",
+        "Mentions connecting as the database utility network owner and portal utility network owner",
+        "Mentions running while connected to the DEFAULT version",
+        "Explains that Apply Asset Package is additive so adding a domain network to an existing UN is supported"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "rest-isolation-trace-json",
+      "prompt": "Write me the REST request to run an isolation trace from a water main (globalId {5B3C...}) at the midpoint, stopping at operable isolating valves, against version 'crew1.outage'. Domain network is Water, tier is Pressure.",
+      "expected_output": "Complete trace request with percentAlong 0.5, isolation traceType, filterBarriers using category Isolating + operable, gdbVersion; code output format.",
+      "files": [],
+      "assertions": [
+        "traceType is isolation",
+        "starting point uses percentAlong (about 0.5), not terminalId, because it's a line",
+        "Sets gdbVersion to crew1.outage and mentions sessionId if the version is locked",
+        "Uses filterBarriers (or a category-based barrier) for isolating devices",
+        "domainNetworkName Water and tierName Pressure are in traceConfiguration",
+        "Operator values come from the valid set (e.g. equal) and values are strings"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "dirty-area-status-decode",
+      "prompt": "our dirty areas table shows status values 1, 9 and 40 all over the place after a big load. which ones do I actually need to worry about?",
+      "expected_output": "Decodes 1 (edit only), 9 (edit+feature error), 40 (feature error + subnetwork error); says to fix errors then validate.",
+      "files": [],
+      "assertions": [
+        "Decodes 1 as a modified/inserted feature with no error",
+        "Decodes 9 as modified feature plus feature error",
+        "Decodes 40 as feature error plus subnetwork error",
+        "Says status 1 only needs validation while 9 and 40 need errors fixed"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "upgrade-v8-field-maps",
+      "prompt": "Should we upgrade our telecom + electric UN from version 7 to 8? We're on Enterprise 12.1 and Pro 3.7, and linemen use Field Maps.",
+      "expected_output": "Flags Field Maps/Native SDK don't support v8; lists upgrade prerequisites; weighs telecom benefits.",
+      "files": [],
+      "assertions": [
+        "States Field Maps (and Native SDKs) do not support utility network version 8",
+        "Notes version 8 is mainly for the telecom domain network and is not the default",
+        "Lists Upgrade Dataset prerequisites (topology disabled, exclusive lock/services stopped, owner connections)",
+        "Recommends a backup before upgrading"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "arcpy-structural-attachment",
+      "prompt": "python script to attach a transformer to a pole in our UN with arcpy \u2014 I have both globalids. also how would I remove it later",
+      "expected_output": "Uses arcpy.un.UtilityNetwork AddStructuralAttachmentAssociation and DeleteStructualAttachmentAssociation (Esri spelling); checks topology; licensing correct.",
+      "files": [],
+      "assertions": [
+        "Uses arcpy.un.UtilityNetwork(...).AddStructuralAttachmentAssociation with structure and attachment tables and globalIds",
+        "Uses DeleteStructualAttachmentAssociation with Esri's spelling (or explicitly warns about it)",
+        "Mentions a structural attachment rule must exist for the asset types",
+        "Does not claim a separate 'Utility Network extension' license is required"
+      ]
+    }
+  ]
+}
