@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.0 — 2026-09-28
 Repository
 - Professional README with banner, badges, examples and architecture diagram; social preview image.
 - Contribution pipeline: CONTRIBUTING guide, issue forms (add knowledge, correction, bug), PR template, knowledge inbox.
@@ -9,7 +9,6 @@ Repository
 - ROADMAP, SECURITY and CODE_OF_CONDUCT.
 - MCP server pinned to MCP Python SDK 1.x (`mcp<2`); SDK 2.x renamed FastMCP.
 
-## 2.0.0 — 2026-09-28
 Skill
 - Rewrote SKILL.md: broader trigger description, request workflow, six answer formats, MCP as a first-class section.
 - New references: asset packages & Foundations, dataset versions & compatibility, publishing/ownership/licensing, full REST trace configuration schema, building a UN MCP server.

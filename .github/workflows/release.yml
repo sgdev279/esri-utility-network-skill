@@ -38,6 +38,7 @@ jobs:
       - name: Publish to the MCP Registry
         run: |
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          sleep 60   # let PyPI serve the new release before the registry verifies it
           cd mcp-server
           ../mcp-publisher login github-oidc
           ../mcp-publisher publish
