@@ -78,17 +78,21 @@ tool errors:
 
 ## Migrating from a geometric network or plain feature classes
 
-Esri's documented path is the **Utility Network Migration Wizard / migration
-toolset** (named in the Pro Help FAQ). The practical pattern most
-implementers follow:
+**Full detail lives in `11-migration-and-schema-mapping.md`** (choosing between
+Foundation, Migration Wizard, Migrate To Utility Network tool and manual
+setup; the mapping workbook workflow; error analysis). In short: for a
+Foundation, source-to-target mapping is done in a mapping Excel workbook
+(UDMS tools), then loaded into the asset package's tables; for a
+keep-your-own-schema migration, use the wizard or tool.
 
-1. Choose the target Foundation and export it as your target asset package.
-2. Map source classes/fields/subtypes to target asset groups/asset types
-   (the mapping lives in the asset package's data tables).
-3. Load data into the asset package (schema + data), fix data issues there —
-   it's a file gdb, so iteration is fast.
-4. Stage, Apply Asset Package with Load data = true, post-process.
-5. Expect a large first-time error count on Enable Topology; triage by error
+Pattern when loading into a Foundation asset package:
+
+1. Choose the target Foundation (its asset package is the target schema).
+2. Build the source-to-target mapping workbook and load data into the asset
+   package (a file gdb, so iteration is fast).
+3. Deploy with Asset Package to Geodatabase (or Stage + Apply Asset Package
+   with Load data = true), with post-processing off on the first pass.
+4. Expect a large first-time error count on Enable Topology; triage by error
    code (`04-associations-editing-errors.md`) rather than fixing features one
    by one.
 
@@ -107,3 +111,4 @@ topology on a subset first to find systematic rule gaps.
   disabled, owner connection, DEFAULT).
 - "Move config from test to prod" → Export Asset Package → Stage + Apply in
   prod; don't hand-recreate rules.
+- "Migrate / map our existing data" → open `11-migration-and-schema-mapping.md`.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0 — 2026-09-29
+Skill
+- New reference `pro-help/11-migration-and-schema-mapping.md`: choosing between Foundation, Migration Wizard, Migrate To Utility Network tool and manual setup; schema mapping vs object mapping; the mapping-workbook loading workflow; Migrate To Utility Network parameters and limits; Analyze Network Data / Apply Error Resolutions loop; relationship classes to associations (`C_Associations`, Sync the C Tables); pre-load QC rules; post-migration order.
+- Corrected `pro-help/08`: source-to-target mapping lives in a mapping workbook, not the asset package tables; migration section now points to file 11.
+- `github-ecosystem/01`: added Create Simple Data Mapping, Load Data Using Workspace and Sync the C Tables to the UDMS table.
+- SKILL.md description and index now route migration and schema-mapping questions.
+- Evals: 3 migration evals (ids 7-9) and 4 trigger queries.
+
 ## 2.0.0 — 2026-09-28
 Repository
 - Professional README with banner, badges, examples and architecture diagram; social preview image.

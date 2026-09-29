@@ -25,12 +25,16 @@ actively growing):
 | Asset Package | `CreateNetworkCopyingWorkbook` / `ApplyNetworkCopyingWorkbook` | Copy asset groups/types **between** utility networks (e.g., dev → prod, or between similar utilities) via a reviewable workbook rather than manual reconfiguration. |
 | Data Migration | `CreateMigrationWorkspace` | Builds a data model + data-loading workspace for use with a Data Loading tool — supports the same migration workflows described conceptually in the Pro Help "Migrate existing data" material this skill references. |
 | Data Migration | `CopyFieldsAndDomainsFromMapping` | Copies fields/domains between feature classes/tables per a mapping worksheet — a common step in schema migration. |
+| Data Migration | Create Simple Data Mapping | First step of Esri's Foundation loading tutorial: inventories the source database and writes the mapping Excel workbook (source class → target class, asset group, asset type). Named in Esri's Learn ArcGIS tutorial; exact toolbox placement not verified. |
+| Data Migration | Load Data Using Workspace | Runs the field-level mapping (DataReference workbook) to fill the asset package. Same tutorial. |
+| Data Migration | Sync the C Tables | After loading relationship-class mappings into `C_Associations`, fills the domain/asset columns; needs exclusive database locks. See `pro-help/11-*.md`. |
 | Contingent Values | `CreateContingentValues`, `CreateContingentValuesWorkbook`, `CreateContingentValueAttributeRules` | Manage geodatabase **contingent values** (constrained attribute combinations) for UN schemas, including converting them into attribute rules. |
 | Utility Network | `SummarizeUNErrors` | Already referenced in `pro-help/04-associations-editing-errors.md` — produces a diagnostic geodatabase of duplicate/dangling associations, out-of-sync `AssociationStatus`, duplicate subnetwork controllers, and topology inconsistencies. |
 
 **When to point someone here**: any request involving bulk configuration
 review/editing (rules, categories, terminal configs via spreadsheet), data
-migration tooling beyond the base Migration Wizard, or a deeper error/health
+migration tooling beyond the base Migration Wizard (workflow in
+`pro-help/11-migration-and-schema-mapping.md`), or a deeper error/health
 audit than the interactive Error Inspector provides.
 
 ## `Esri/utility-network-properties-extractor`

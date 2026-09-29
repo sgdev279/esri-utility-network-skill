@@ -1,6 +1,6 @@
 ---
 name: utility-network
-description: Expert reference for the Esri ArcGIS Utility Network (UN) - data model, Foundations and asset packages, configuration, tracing, subnetworks, dirty areas and errors, versioning, publishing, licensing, dataset versions and upgrades, and every developer surface (REST UtilityNetworkServer, JavaScript SDK, Pro SDK C#, arcpy.un, Experience Builder) - plus connecting AI agents to a utility network through MCP. Use it whenever someone mentions the utility network or UN in an ArcGIS context, or uses its vocabulary without naming it - subnetwork controllers, Update Subnetwork, domain networks, tiers, dirty areas, Error Inspector, network topology, containment or structural attachment associations, terminal configurations, Apply Asset Package, UN Foundations, named trace configurations, isolation or upstream traces - or wants an MCP server or AI agent for utility GIS data. Not for Trace Networks, geometric networks (except migrating from one), Network Analyst, or non-Esri meanings of utility network or UN.
+description: Expert reference for the Esri ArcGIS Utility Network (UN) - data model, Foundations, asset packages, migration and schema mapping, configuration, tracing, subnetworks, dirty areas and errors, versioning, publishing, licensing, dataset versions and upgrades, and every developer surface (REST UtilityNetworkServer, JavaScript SDK, Pro SDK C#, arcpy.un, Experience Builder) - plus connecting AI agents to a utility network through MCP. Use it whenever someone mentions the utility network or UN in an ArcGIS context, or uses its vocabulary without naming it - subnetwork controllers, Update Subnetwork, domain networks, tiers, dirty areas, Error Inspector, network topology, associations, Apply Asset Package, Migration Wizard, mapping source data to asset groups and types, trace configurations, isolation or upstream traces - or wants an MCP server or AI agent for utility GIS data. Not for Trace Networks, geometric networks (except migrating from one), Network Analyst, or non-Esri meanings of utility network or UN.
 ---
 
 # Esri ArcGIS Utility Network — Expert Reference
@@ -164,6 +164,7 @@ parts involved, then the code in the target surface (format 3).
 | `pro-help/08-asset-packages-foundations-migration.md` | Foundations, Utility Network Package Tools, Apply Asset Package failures, migration |
 | `pro-help/09-dataset-versions-compatibility-upgrade.md` | UN dataset versions 4–8, Pro/Enterprise compatibility, Upgrade Dataset |
 | `pro-help/10-publishing-ownership-licensing.md` | Licensing, database vs portal owner, publishing prerequisites, permission errors |
+| `pro-help/11-migration-and-schema-mapping.md` | Migrating geometric networks or plain feature classes to a UN, source-to-target schema mapping, Migrate To Utility Network, Foundation data loading, post-migration errors |
 
 **REST API**
 | File | Read when |

@@ -1,6 +1,6 @@
 {
   "name": "utility-network",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Expert reference for the Esri ArcGIS Utility Network: tracing, subnetworks, dirty areas, asset packages, dataset versions, REST/JS/C#/arcpy, and connecting AI agents via MCP",
   "author": {
     "name": "Sayanta Ghosh"

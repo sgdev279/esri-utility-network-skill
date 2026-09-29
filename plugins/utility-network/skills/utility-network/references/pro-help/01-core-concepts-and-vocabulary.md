@@ -94,8 +94,8 @@ When a utility network is added to a map:
      existing geometric network or other feature classes into a utility network.
   3. Manual creation with core ArcGIS Pro tools is also possible but is the most
      labor-intensive path (see `03-creation-configuration-attributes-categories-rules.md`).
-  Foundations and migration workflows are covered in
-  `08-asset-packages-foundations-migration.md`.
+  Foundations are covered in `08-asset-packages-foundations-migration.md`;
+  migration and schema mapping in `11-migration-and-schema-mapping.md`.
 - Enterprise deployments are designed for **service-based editing**; direct database
   connections are reserved for the initial configuration/QA phase before network
   topology is enabled and published.

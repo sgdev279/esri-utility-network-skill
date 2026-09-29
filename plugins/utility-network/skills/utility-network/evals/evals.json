@@ -76,7 +76,7 @@
     {
       "id": 6,
       "name": "arcpy-structural-attachment",
-      "prompt": "python script to attach a transformer to a pole in our UN with arcpy \u2014 I have both globalids. also how would I remove it later",
+      "prompt": "python script to attach a transformer to a pole in our UN with arcpy — I have both globalids. also how would I remove it later",
       "expected_output": "Uses arcpy.un.UtilityNetwork AddStructuralAttachmentAssociation and DeleteStructualAttachmentAssociation (Esri spelling); checks topology; licensing correct.",
       "files": [],
       "assertions": [
@@ -84,6 +84,48 @@
         "Uses DeleteStructualAttachmentAssociation with Esri's spelling (or explicitly warns about it)",
         "Mentions a structural attachment rule must exist for the asset types",
         "Does not claim a separate 'Utility Network extension' license is required"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "migrate-geometric-network-path",
+      "prompt": "we have an ArcMap geometric network for water and gas, 60k features, and want to move to the utility network in Pro. we like our own field names and don't want to adopt a full Foundation. what's the route and what do we need ready first?",
+      "files": [],
+      "expected_output": "Recommends the Migration Wizard or Migrate To Utility Network tool over a Foundation; names the service territory polygon prerequisite, geodatabase-class and Global ID requirements, and the analyze/resolve error loop.",
+      "assertions": [
+        "Recommends the Migration Wizard or the Migrate To Utility Network geoprocessing tool for keeping the existing schema",
+        "Requires a service territory polygon covering current and future assets",
+        "States sources must be geodatabase classes (and that related classes or attachments need Global IDs)",
+        "Says the result is a basic UN needing error analysis (Analyze Network Data / Apply Error Resolutions) and later configuration",
+        "Does not claim the tool maps complex associations automatically"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "foundation-schema-mapping",
+      "prompt": "we're loading our electric data into the Electric Foundation. how do we map our source subtypes to asset groups and asset types, and what do we do about our coded domain values that don't match?",
+      "files": [],
+      "expected_output": "Explains schema vs object mapping and the mapping workbook workflow: Create Simple Data Mapping, Create Migration Workspace, lookup tables, Load Data Using Workspace; notes database field names and expression-vs-lookup limits.",
+      "assertions": [
+        "Describes the mapping Excel workbook produced by Create Simple Data Mapping (not the asset package tables) as where source-to-target mapping is defined",
+        "Mentions Create Migration Workspace and Load Data Using Workspace",
+        "Recommends lookup tables for mismatched domain values",
+        "Warns to use database field names rather than aliases",
+        "Warns a field cannot use both an expression and a lookup",
+        "Recommends disabling post-processing on the first deployment to review errors"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "migration-relationship-classes",
+      "prompt": "our source geodatabase has a transformer-to-pole relationship class and some many-to-many relationship classes. what happens to them when we migrate to a UN?",
+      "files": [],
+      "expected_output": "Explains relationship classes map to associations (structural attachment for transformer-pole) via C_Associations and Sync the C Tables; many-to-many and attributed classes are not migrated by the Migrate To Utility Network tool.",
+      "assertions": [
+        "Says transformer-to-pole maps to a structural attachment association",
+        "Mentions the C_Associations table and the Sync the C Tables tool (exclusive locks)",
+        "States many-to-many and attributed relationship classes cannot be migrated by the tool",
+        "Notes related classes need Global ID keys"
       ]
     }
   ]

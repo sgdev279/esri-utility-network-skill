@@ -15,7 +15,7 @@ Content the skill doesn't cover well yet, roughly in priority order. Want to hel
 | Medium | Network diagram reduction/aggregation rules in detail | Currently marked "not pulled in detail" | `pro-help/07-*` |
 | Medium | ArcGIS Maps SDKs for Native Apps (.NET MAUI, Kotlin, Swift, Qt) | Currently out of scope; mobile developers ask | new `native-sdk/` area |
 | Low | Telecom circuits end-to-end workflow in Pro | Only REST is covered in depth | new `pro-help/` file |
-| Low | Migration case studies from geometric networks | Practical patterns beyond the tool list | `pro-help/08-*` |
+| Medium | Migration follow-ups: asset package table schema in field-level detail, per-release availability of the Migration toolset, worked migration case studies | Core migration content is in `pro-help/11-*`; these are the remaining gaps | `pro-help/11-*` |
 
 ## MCP server
 

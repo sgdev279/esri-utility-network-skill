@@ -78,5 +78,21 @@
   {
     "query": "network analyst service area for fire stations, 4 minute drive time",
     "should_trigger": false
+  },
+  {
+    "query": "how do i map our source feature classes and subtypes to asset groups and asset types when loading into the water foundation",
+    "should_trigger": true
+  },
+  {
+    "query": "Migrate To Utility Network tool keeps saying features are outside the service territory, what does it want",
+    "should_trigger": true
+  },
+  {
+    "query": "we migrated to UN with the wizard and now have 30k topology errors. analyze network data vs apply error resolutions, which first?",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I set up a Trace Network in ArcGIS Pro and migrate my old trace network rules",
+    "should_trigger": false
   }
 ]
