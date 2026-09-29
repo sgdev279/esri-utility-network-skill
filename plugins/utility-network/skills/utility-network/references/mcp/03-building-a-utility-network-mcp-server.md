@@ -39,7 +39,8 @@ the tool and what the arguments look like.
 | `trace` | read | `UtilityNetworkServer/trace` | The core question-answerer. Returns a **summary**, not raw elements. |
 | `query_associations` | read | `UtilityNetworkServer/associations/query` | "What's in this vault / on this pole / connected to this device". |
 | `query_subnetworks` | read | `FeatureServer/<subnetworksTable>/query` | "Which subnetworks are dirty", "who feeds RMT001". |
-| `dirty_area_summary` | read | `FeatureServer/<dirtyAreas>/query` with `outStatistics` | Health check: pending edits vs. real errors, decoded from the Status bitmask. |
+| `dirty_area_summary` | read | `FeatureServer/<dirtyAreas>/query` with `outStatistics` | Health check: pending edits vs. real errors, decoded from the Status bitmask, with whether Validate will evaluate each row (error-only rows are ignored by validate). |
+| `find_features` | read | `FeatureServer/<layer>/query` on each feature layer | People say "CB-1042", the trace needs a globalId. Returns globalId plus asset group/type names. Field from `UN_ASSET_ID_FIELD`. |
 | `network_moments` | read | `UtilityNetworkServer/queryNetworkMoments` | Is topology valid; when it was last enabled. |
 | `job_status` | read | the `statusUrl` from an async job | Polls long-running operations. |
 | `validate_network_topology` | **write** | `UtilityNetworkServer/validateNetworkTopology` | Opt-in only. |
@@ -109,7 +110,7 @@ server can therefore run under a cheaper user type.
    refusal message tells the agent to ask the user first. This makes the
    human approval explicit in the transcript.
 3. **Version discipline.** Default reads to `sde.DEFAULT`; for writes prefer a
-   named branch version (needs `sessionID`) unless the task is inherently
+   named branch version (pass `sessionID` if your client started the edit session) unless the task is inherently
    DEFAULT-only (update subnetwork on DEFAULT, export with acknowledgement).
 4. **Extent limits.** Refuse validate requests over a configured area or
    without an extent — full-extent validation on a large network can run for
@@ -160,8 +161,11 @@ the organisation's reverse proxy and require per-user auth at the proxy.
   substring (`dirty`, `subnetwork`, `association`) rather than hard-coding.
 - **Network source IDs** are per-service, not global. Always resolve them
   from `queryDataElements`; never hard-code IDs from another environment.
-- **Locked versions**: if another session holds the version, calls without
-  `sessionId` fail. Surface that error plainly rather than retrying.
+- **Sessions**: `sessionId` matters only when *your own* client holds an
+  exclusive edit session on the version (Esri: the request fails if you do and
+  omit it). Someone else editing the version does not block reads; a trace
+  sees the saved state. If a call fails with a lock or session error, surface
+  it plainly rather than retrying.
 - **Named trace config names aren't unique keys** — use the `globalId`.
 - **Branch versions and topology**: validate on a named version writes to that
   version's dirty areas; the DEFAULT subnetwork state won't change until the

@@ -12,10 +12,11 @@ An [MCP](https://modelcontextprotocol.io) server that lets AI assistants (Claude
 |---|---|---|
 | `describe_network` | read | Domain networks, tiers, network attributes, categories, system layers |
 | `list_trace_configurations` | read | Named trace configurations stored in the service |
-| `trace` | read | Connected / upstream / downstream / subnetwork / isolation / shortest path / loops — returns a summary by asset group and type, not 100k raw elements |
+| `trace` | read | Connected / upstream / downstream / subnetwork / isolation / shortest path / loops — returns a summary by asset group and type (names added when the service exposes them), not 100k raw elements |
 | `query_associations` | read | Containment, attachment and connectivity associations for given features |
-| `query_subnetworks` | read | Rows from the Subnetworks table (e.g. `ISDIRTY = 1`) |
-| `dirty_area_summary` | read | Dirty areas grouped by Status, decoded into pending edits vs. real errors |
+| `query_subnetworks` | read | Rows from the Subnetworks table; `ISDIRTY` holds clean / dirty / invalid (check the stored codes on your service before filtering on a number) |
+| `dirty_area_summary` | read | Dirty areas grouped by Status, decoded, with whether Validate will evaluate each and the next action (error-only rows such as 8 and 40 need a feature edit, not another validate) |
+| `find_features` | read | Look up a feature by asset ID (for example `CB-1042`); returns globalId, layer and asset group / type names to feed `trace`. Field set by `UN_ASSET_ID_FIELD` (default `ASSETID`) |
 | `network_moments` | read | Whether topology is valid; when it was last enabled |
 | `job_status` | read | Poll an async job |
 | `validate_network_topology` | **write** | Only when `UN_ALLOW_WRITES=true`, and each call needs `confirm=true` |

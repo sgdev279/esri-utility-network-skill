@@ -56,7 +56,7 @@ construct a request for it.
   |---|---|
   | `f` | `html`, `json`, `pjson` |
   | `gdbVersion` | default `sde.DEFAULT` |
-  | `sessionID` | spelled with capital *ID* in the reference; **required** for a named version, omit for an unlocked DEFAULT |
+  | `sessionID` | spelled with capital *ID* in the reference; needed when **your client** holds the edit session (exclusive lock) on the version; omit otherwise. Same rule as trace; confirm on the live operation page |
   | `validationType` | `normal`, `rebuild`, `forceRebuild` |
   | `validateArea` | envelope with `spatialReference` — the area to validate |
   | `validationSet` | optional `[{"sourceId": 9, "globalIds": ["{...}"]}]` — validate only these features |
@@ -105,7 +105,7 @@ Advanced Editing user type extension.
 |---|---|---|
 | `f` | no | `html` (default), `json`, `pjson` |
 | `gdbVersion` | no | default `sde.DEFAULT` |
-| `sessionId` | no | required when editing a named version |
+| `sessionId` | no | needed when your client holds the exclusive edit session on the version (edits made in that session are then visible to the operation); omit for reads |
 | `domainNetworkName` | **yes** | |
 | `tierName` | **yes** | |
 | `subnetworkName` | one of these two | a specific subnetwork |

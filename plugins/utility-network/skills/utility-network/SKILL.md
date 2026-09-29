@@ -77,7 +77,7 @@ Key facts to carry into every MCP answer:
 - Route C template: `scripts/un_mcp_server.py` — tools `describe_network`,
   `list_trace_configurations`, `trace` (summarised results),
   `query_associations`, `query_subnetworks`, `dirty_area_summary`,
-  `network_moments`, `job_status`; write tools `validate_network_topology`
+  `find_features` (asset ID to globalId), `network_moments`, `job_status`; write tools `validate_network_topology`
   and `update_subnetwork` only when `UN_ALLOW_WRITES=true` **and** called
   with `confirm=true`.
 - Always cover: which route and why, read vs. write tiers, auth pattern,

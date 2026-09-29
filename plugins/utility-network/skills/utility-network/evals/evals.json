@@ -41,7 +41,7 @@
       "assertions": [
         "traceType is isolation",
         "starting point uses percentAlong (about 0.5), not terminalId, because it's a line",
-        "Sets gdbVersion to crew1.outage and mentions sessionId if the version is locked",
+        "Sets gdbVersion to crew1.outage and does NOT require sessionId for a read-only trace (sessionId is only for a client holding the exclusive edit session)",
         "Uses filterBarriers (or a category-based barrier) for isolating devices",
         "domainNetworkName Water and tierName Pressure are in traceConfiguration",
         "Operator values come from the valid set (e.g. equal) and values are strings"
@@ -51,13 +51,14 @@
       "id": 4,
       "name": "dirty-area-status-decode",
       "prompt": "our dirty areas table shows status values 1, 9 and 40 all over the place after a big load. which ones do I actually need to worry about?",
-      "expected_output": "Decodes 1 (edit only), 9 (edit+feature error), 40 (feature error + subnetwork error); says to fix errors then validate.",
+      "expected_output": "Decodes 1 (edit only), 9 (edit + feature error), 40 (feature error + subnetwork error); says validate ignores error-only rows, so the feature must be edited; Update Subnetwork afterwards for bit 32.",
       "files": [],
       "assertions": [
         "Decodes 1 as a modified/inserted feature with no error",
         "Decodes 9 as modified feature plus feature error",
         "Decodes 40 as feature error plus subnetwork error",
-        "Says status 1 only needs validation while 9 and 40 need errors fixed"
+        "Says status 1 only needs validation while 9 and 40 need errors fixed",
+        "States that Validate Network Topology ignores error-only dirty areas (no edit bit) so the cause must be fixed by editing"
       ]
     },
     {
@@ -126,6 +127,67 @@
         "Mentions the C_Associations table and the Sync the C Tables tool (exclusive locks)",
         "States many-to-many and attributed relationship classes cannot be migrated by the tool",
         "Notes related classes need Global ID keys"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "specific-apply-gas-to-water",
+      "prompt": "Apply Asset Package fails when I try to add gas to our water utility network. Setup: ArcGIS Pro 3.5, ArcGIS Enterprise 11.3 with PostgreSQL. Our water UN is 'WaterUN' in feature dataset 'WaterDistribution' and already has the domain network 'Water'. I'm applying the Gas Foundation asset package with 'Domain networks to apply' = Gas. My Pro project has two maps open (Editing and Publishing). I connected to the database as 'gis_editor' (the UN owner is 'wateradmin'), my Enterprise portal login is 'jsmith' (the portal utility network owner is 'wateradmin'), and my current version is 'wateradmin.crew1'. Network topology is currently enabled because dispatch runs traces all day. What exactly is wrong, in what order do I fix it, and will applying Gas wipe out our Water configuration?",
+      "files": [],
+      "expected_output": "Finds all five violated conditions, orders the fix, says the tool is additive, warns about dispatch downtime.",
+      "assertions": [
+        "Names each violated condition: two open maps, topology enabled, database user not the owner, portal user not the portal owner, version not DEFAULT",
+        "Does not invent a Pro 3.5 / Enterprise 11.3 version mismatch (asks to check the dataset version instead)",
+        "Says Apply Asset Package is additive: Gas is added and Water is not removed or modified; select only Gas",
+        "Gives an ordered fix: backup and tell dispatch, close maps, portal owner sign-in and database owner connection on DEFAULT, disable topology, apply, then post-process/enable topology",
+        "Warns that disabling topology interrupts dispatch's traces"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "specific-isolation-trace-crew1-outage",
+      "prompt": "Write the REST request for an isolation trace on our water utility network. Service: https://gis.cityutil.example/server/rest/services/WaterUN/UtilityNetworkServer (federated with our portal). The main is a WaterLine feature with GlobalID {8F2A6C1E-4B7D-4E1A-9C55-2D0F7A1B3E90}; break it at the midpoint. Isolating valves are in the WaterDevice class and carry the network category 'Isolating'; there is a network attribute 'Operable' where 1 means operable, and I only want to stop at operable valves. Domain network is Water, tier is Pressure. Run it on the branch version 'crew1.outage' (created by user crew1; someone else may have it open for editing). I also want to know which service connections lose water. Give me a curl command and tell me what to check if it comes back with zero elements.",
+      "files": [],
+      "expected_output": "Complete curl with percentAlong 0.5, filterBarriers (Isolating category and Operable), gdbVersion crew1.outage, no sessionId; explains element codes; zero-element checklist; validator output.",
+      "assertions": [
+        "Start location uses percentAlong 0.5 and no terminalId",
+        "Uses filterBarriers (not conditionBarriers) with the Isolating category and Operable = \"1\" (string), joined with AND",
+        "gdbVersion is crew1.outage and sessionId is NOT required for a read-only trace; explains it is only for a client holding the exclusive edit session",
+        "States trace elements carry assetGroupCode/assetTypeCode and networkSourceId, not names, and identifies service connections via codes",
+        "Sets includeIsolated (or equivalent) so the affected features are returned",
+        "Zero-element checklist includes a silently ignored start location, the GlobalID not existing on that version, exact case-sensitive names, and dirty areas on the version",
+        "Runs scripts/build_trace_request.py --check and reports its real output"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "specific-dirty-areas-8-and-40-survive-validate",
+      "prompt": "After loading 46k features into a branch version our DirtyAreas table has: Status 1 x 41,220; Status 2 x 130; Status 9 x 312; Status 8 x 5; Status 40 x 18. Validate Network Topology over the full extent says success, but the Status 8 and Status 40 rows are still there afterwards. What does each value mean, which ones do I actually need to work on, why did validate not clear them, and what do I do next for each?",
+      "files": [],
+      "expected_output": "Correct decode of 1, 2, 9, 8, 40; validate ignores error-only rows; edit the feature then validate; Update Subnetwork for 40.",
+      "assertions": [
+        "Decodes 1 as insert/update, 2 as delete, 9 as insert/update plus feature error, 8 as feature error, 40 as feature error plus subnetwork error",
+        "Explains validate only evaluates dirty areas with an edit bit, so error-only rows 8 and 40 are ignored (not a failed validate)",
+        "Says the fix for 8 and 40 is to edit the feature, rule or subnetwork definition, then validate",
+        "Says 40 also needs Update Subnetwork and that the subnetwork stays Invalid until it updates cleanly",
+        "Says 9 rows are re-evaluated and become 8 if the error persists",
+        "Says a successful validate job does not mean zero errors"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "specific-dispatch-mcp-breaker-cb-1042",
+      "prompt": "Dispatch (12 people, none have ArcGIS Pro licences) wants to ask Claude Desktop things like 'what is downstream of breaker CB-1042?' and 'which feeders have dirty subnetworks?' on our electric utility network. We run ArcGIS Enterprise 11.5 with a federated portal (SAML SSO), the UN dataset is version 7 and branch versioned, and the service was published from Pro. Should we use Esri's MCP support, custom geoprocessing tools, or your utility network MCP server? Give me the recommended route, the tool list, how to authenticate, the Claude Desktop config, the safety controls (dispatch must never be able to edit), and what licensing dispatch needs.",
+      "files": [],
+      "expected_output": "Route C recommended, Esri MCP beta has no UN tools, find_features for asset ID, SAML-compatible auth, read-only controls, licensing.",
+      "assertions": [
+        "States Esri's MCP in ArcGIS Enterprise (beta) has no utility network tools such as trace",
+        "Recommends the custom REST MCP server and says why GP tools or Esri's overlay alone are weaker",
+        "Handles the 'CB-1042' problem: an asset ID must be turned into a globalId (find_features), and a device start needs a terminalId",
+        "Auth suits SAML: OAuth client credentials or a pre-issued token, notes generateToken does not work for SAML-only logins, and warns about secrets on 12 machines",
+        "Read-only controls: write tools not registered by default, service account without the Advanced Editing extension, view-only sharing",
+        "Says trace and query need no Advanced Editing extension and no Pro licence",
+        "Flags what is unverified (for example ISDIRTY stored codes) instead of asserting it"
       ]
     }
   ]

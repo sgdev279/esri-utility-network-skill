@@ -1,0 +1,17 @@
+{
+  "f": "json",
+  "gdbVersion": "crew1.outage",
+  "sessionId": "not-a-guid",
+  "traceType": "isolation",
+  "traceLocations": [
+    {"traceLocationType": "startingPoint", "globalId": "{8F2A6C1E-4B7D-4E1A-9C55-2D0F7A1B3E90}", "percentAlong": 50},
+    {"traceLocationType": "barrier", "globalId": "{5B3C0E1A-77D2-4C0B-8A11-3E9D2F6A4B10}"}
+  ],
+  "traceConfiguration": {
+    "domainNetworkName": "Water",
+    "tierNam": "Pressure",
+    "filterBarriers": [
+      {"type": "networkAttribute", "operator": "equals", "value": "1"}
+    ]
+  }
+}

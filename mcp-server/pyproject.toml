@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "utility-network-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "MCP server for the Esri ArcGIS Utility Network: trace, subnetworks, dirty areas and associations over the UtilityNetworkServer REST API"
 readme = "README.md"
 requires-python = ">=3.10"

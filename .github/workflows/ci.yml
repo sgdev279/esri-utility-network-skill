@@ -43,5 +43,7 @@ jobs:
           python un_mcp_server.py --selftest
           python decode_dirty_status.py 0 10 40
           python association_types.py --table
+      - name: Tests (scripts, validator, MCP server against a mock service)
+        run: python -m unittest discover -s tests -v
       - name: Build MCP package
         run: python -m build mcp-server

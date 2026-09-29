@@ -6,7 +6,19 @@ Skill
 - Corrected `pro-help/08`: source-to-target mapping lives in a mapping workbook, not the asset package tables; migration section now points to file 11.
 - `github-ecosystem/01`: added Create Simple Data Mapping, Load Data Using Workspace and Sync the C Tables to the UDMS table.
 - SKILL.md description and index now route migration and schema-mapping questions.
-- Evals: 3 migration evals (ids 7-9) and 4 trigger queries.
+- Evals: 3 migration evals (ids 7-9), four specific scenario evals (ids 10-13) and 4 trigger queries.
+- Corrected `sessionId` semantics for trace (only when the caller holds the exclusive edit session), documented the trace element fields, and added the rule that Validate ignores error-only dirty areas (Status 8, 16, 32, 40).
+- Full Subnetworks table field list in `pro-help/02` (`ISDIRTY` codes flagged as unverified).
+- `decode_dirty_status.py` reports whether validate will evaluate each Status and the next action, and fails cleanly on bad input.
+- `build_trace_request.py` now separates PROBLEMS from WARNINGS, and checks condition names, GUID format, sessionId shape and category shape.
+
+MCP server 0.2.0
+- New `find_features` tool: asset ID (for example CB-1042) to globalId plus asset group and type names. Field set by `UN_ASSET_ID_FIELD`.
+- `trace` summaries add asset group and type names when the service exposes them.
+- `dirty_area_summary` classifies each Status (edit only, error only, edit + error) and reports how many error-only rows validate will ignore.
+
+Repository
+- `tests/`: 25 tests including an end-to-end MCP test against a mock service; runs in CI. `examples/isolation-trace/` and `docs/EXAMPLES.md` and `docs/TESTING.md` replace the generic README examples with specific, verified ones.
 
 ## 2.0.0 — 2026-09-28
 Repository

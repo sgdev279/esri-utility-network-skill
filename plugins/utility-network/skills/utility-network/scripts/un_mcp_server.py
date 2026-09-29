@@ -25,6 +25,7 @@ Configuration (environment variables):
   UN_DEFAULT_VERSION      default gdbVersion for reads (default: sde.DEFAULT)
   UN_ALLOW_WRITES         "true" to register write tools (default: false)
   UN_MAX_IDS              max globalIds returned per group in summaries (default: 25)
+  UN_ASSET_ID_FIELD       field matched by find_features(asset_id=...) (default: ASSETID)
   UN_VERIFY_TLS           "false" to skip TLS verification (lab use only)
 
 Run:   python un_mcp_server.py            (stdio transport)
@@ -65,6 +66,51 @@ def decode_dirty_status(status: int) -> list[str]:
     if status == 0:
         return ["network topology disabled"]
     return [label for bit, label in DIRTY_STATUS_BITS if status & bit]
+
+
+DIRTY_EDIT_BITS = 1 | 2 | 4
+DIRTY_ERROR_BITS = 8 | 16 | 32
+
+
+def classify_dirty_status(status: int) -> dict:
+    """Decode Status and say what Validate Network Topology will do with it.
+
+    Esri: validate only evaluates dirty areas that carry an edit bit (1, 2, 4).
+    Error-only dirty areas (8, 16, 32 or sums such as 40) are ignored; the
+    feature (or rule / subnetwork definition) has to be edited to fix them.
+    """
+    meanings = decode_dirty_status(status)
+    if status == 0:
+        return {"meaning": meanings, "kind": "topology disabled", "validateEvaluates": False,
+                "next": "Enable network topology; Status is meaningless while it is off."}
+    has_edit = bool(status & DIRTY_EDIT_BITS)
+    has_error = bool(status & DIRTY_ERROR_BITS)
+    if has_error and not has_edit:
+        nxt = ("Validate ignores this row. Fix the cause by editing the feature, rule or "
+               "subnetwork definition, then validate.")
+        if status & 32:
+            nxt += " Then run Update Subnetwork; the subnetwork stays Invalid until it updates cleanly."
+        return {"meaning": meanings, "kind": "error only", "validateEvaluates": False, "next": nxt}
+    if has_error:
+        return {"meaning": meanings, "kind": "edit + error", "validateEvaluates": True,
+                "next": "Validate evaluates it; if the feature still violates a rule it becomes error-only."}
+    return {"meaning": meanings, "kind": "edit only", "validateEvaluates": True,
+            "next": "No error. Validate network topology to clear it."}
+
+
+def asset_names_from_layer(layer: dict) -> dict:
+    """{(assetGroupCode, assetTypeCode): (assetGroupName, assetTypeName)} from a
+    feature layer's `types` (asset groups are subtypes; asset types are the
+    coded values of each subtype's ASSETTYPE domain)."""
+    out: dict = {}
+    for t in layer.get("types", []) or []:
+        gcode, gname = t.get("id"), t.get("name")
+        for fname, dom in (t.get("domains") or {}).items():
+            if fname.lower() != "assettype":
+                continue
+            for cv in (dom or {}).get("codedValues", []) or []:
+                out[(gcode, cv.get("code"))] = (gname, cv.get("name"))
+    return out
 
 
 def feature_service_to_un_server(url: str) -> str:
@@ -109,9 +155,14 @@ def build_trace_locations(starting_points: list[dict], barriers: list[dict] | No
 
 
 def summarize_trace_result(result: dict, source_names: dict[int, str] | None = None,
-                           max_ids: int = 25) -> dict:
-    """Condense a trace response into counts + a capped sample of globalIds."""
+                           max_ids: int = 25, asset_names: dict | None = None) -> dict:
+    """Condense a trace response into counts + a capped sample of globalIds.
+
+    Trace elements carry codes only (networkSourceId, assetGroupCode,
+    assetTypeCode). Pass `asset_names` ({(source, group, type): (groupName,
+    typeName)}) to add readable names alongside the codes."""
     source_names = source_names or {}
+    asset_names = asset_names or {}
     tr = result.get("traceResults", result)
     elements = tr.get("elements", []) or []
     groups: dict[tuple, list[str]] = defaultdict(list)
@@ -120,14 +171,18 @@ def summarize_trace_result(result: dict, source_names: dict[int, str] | None = N
         groups[key].append(e.get("globalId"))
     by_group = []
     for (src, ag, at), gids in sorted(groups.items(), key=lambda kv: -len(kv[1])):
-        by_group.append({
+        row = {
             "networkSource": source_names.get(src, src),
             "assetGroupCode": ag,
             "assetTypeCode": at,
             "count": len(gids),
             "sampleGlobalIds": gids[:max_ids],
             "truncated": len(gids) > max_ids,
-        })
+        }
+        names = asset_names.get((src, ag, at))
+        if names:
+            row["assetGroup"], row["assetType"] = names
+        by_group.append(row)
     summary = {
         "success": result.get("success", True),
         "totalElements": len(elements),
@@ -265,6 +320,34 @@ class UNClient:
                     names[s.get("sourceId")] = s.get("sourceName") or s.get("name")
         return names
 
+    def feature_layers(self) -> list[dict]:
+        """Layers and tables listed on the FeatureServer root ({id, name})."""
+        fs = self.call(self.fs_url, post=False)
+        return [{"id": l["id"], "name": l.get("name", "")}
+                for k in ("layers", "tables") for l in fs.get(k, []) or [] if "id" in l]
+
+    def asset_name_map(self) -> dict:
+        """Best effort: {(networkSourceId, group, type): (groupName, typeName)}.
+        Needs each source's layerId in the data element; returns {} if absent."""
+        if getattr(self, "_asset_names", None) is not None:
+            return self._asset_names
+        out: dict = {}
+        try:
+            de = self.data_element()
+            for dn in de.get("domainNetworks", []) or []:
+                for key in ("junctionSources", "edgeSources"):
+                    for src in dn.get(key, []) or []:
+                        sid, lid = src.get("sourceId"), src.get("layerId")
+                        if sid is None or lid is None:
+                            continue
+                        layer = self.call(f"{self.fs_url}/{lid}", post=False)
+                        for (g, t), names in asset_names_from_layer(layer).items():
+                            out[(sid, g, t)] = names
+        except Exception:
+            out = {}
+        self._asset_names = out
+        return out
+
     def data_element(self) -> dict:
         lid = self.un_layer()["_layerId"]
         j = self.call(f"{self.fs_url}/queryDataElements", {"layers": [lid]}, post=False)
@@ -349,7 +432,7 @@ def build_server():
         if trace_configuration:
             params["traceConfiguration"] = trace_configuration
         raw = client.call(f"{client.un_url}/trace", params)
-        return summarize_trace_result(raw, client.source_names(), max_ids)
+        return summarize_trace_result(raw, client.source_names(), max_ids, client.asset_name_map())
 
     @mcp.tool()
     def query_associations(elements: list[dict], types: list[str] | None = None,
@@ -366,8 +449,10 @@ def build_server():
     @mcp.tool()
     def query_subnetworks(where: str = "1=1", out_fields: str = "*",
                           gdb_version: str | None = None, max_records: int = 200) -> dict:
-        """Query the Subnetworks system table (e.g. where="ISDIRTY = 1" to find
-        subnetworks needing Update Subnetwork, or SUBNETWORKNAME='RMT001')."""
+        """Query the Subnetworks system table, for example
+        where="SUBNETWORKNAME='FDR-12'". The ISDIRTY field holds clean / dirty /
+        invalid, but Esri's table page does not list the stored codes: read a few
+        rows and compare with the status Pro shows before filtering on a number."""
         lid = client.system_layer_id("subnetwork")
         return client.call(f"{client.fs_url}/{lid}/query", {
             "where": where, "outFields": out_fields, "returnGeometry": False,
@@ -377,7 +462,8 @@ def build_server():
     @mcp.tool()
     def dirty_area_summary(gdb_version: str | None = None) -> dict:
         """Count dirty areas grouped by Status and decode each Status bitmask
-        (edits pending validation vs. feature/object/subnetwork errors)."""
+        (edits pending validation vs. feature/object/subnetwork errors), with
+        what Validate will do about each and the next action."""
         lid = client.system_layer_id("dirty")
         j = client.call(f"{client.fs_url}/{lid}/query", {
             "where": "1=1", "groupByFieldsForStatistics": "STATUS",
@@ -389,10 +475,59 @@ def build_server():
         for f in j.get("features", []):
             a = {k.lower(): v for k, v in f["attributes"].items()}
             s = int(a.get("status") or 0)
-            rows.append({"status": s, "count": a.get("n"), "meaning": decode_dirty_status(s)})
+            rows.append({"status": s, "count": a.get("n"), **classify_dirty_status(s)})
+        rows.sort(key=lambda r: r["status"])
         total = sum(r["count"] or 0 for r in rows)
-        errors = sum(r["count"] or 0 for r in rows if r["status"] & (8 | 16 | 32))
-        return {"totalDirtyAreas": total, "withErrors": errors, "byStatus": rows}
+        errors = sum(r["count"] or 0 for r in rows if r["status"] & DIRTY_ERROR_BITS)
+        stuck = sum(r["count"] or 0 for r in rows if r["kind"] == "error only")
+        return {"totalDirtyAreas": total, "withErrors": errors,
+                "errorOnlyIgnoredByValidate": stuck, "byStatus": rows}
+
+    @mcp.tool()
+    def find_features(asset_id: str | None = None, where: str | None = None,
+                      layer_name: str | None = None, gdb_version: str | None = None,
+                      max_records: int = 25) -> dict:
+        """Find features by asset ID (or a SQL where clause) and return the
+        globalId, objectId and asset group / asset type NAMES, so a person can
+        say "CB-1042" instead of a GUID. Use the result's globalId in trace.
+
+        asset_id: matched against the field named by UN_ASSET_ID_FIELD
+          (default ASSETID). where: an alternative SQL filter. layer_name:
+          restrict to layers whose name contains this text (recommended:
+          searching every layer is slow). A device still needs a terminalId to
+          start a trace; ask the user or use a named trace configuration."""
+        if not asset_id and not where:
+            raise ValueError("Give asset_id or where")
+        field = os.environ.get("UN_ASSET_ID_FIELD", "ASSETID")
+        clause = where or f"{field} = '{str(asset_id).replace(chr(39), chr(39) * 2)}'"
+        un_lid = client.un_layer()["_layerId"]
+        sys_ids = {v for v in client.un_layer().get("systemLayers", {}).values() if isinstance(v, int)}
+        layers = [l for l in client.feature_layers()
+                  if l["id"] != un_lid and l["id"] not in sys_ids
+                  and (not layer_name or layer_name.lower() in l["name"].lower())][:30]
+        found, skipped = [], []
+        for l in layers:
+            try:
+                meta = client.call(f"{client.fs_url}/{l['id']}", post=False)
+                names = asset_names_from_layer(meta)
+                j = client.call(f"{client.fs_url}/{l['id']}/query", {
+                    "where": clause, "outFields": "*", "returnGeometry": False,
+                    "resultRecordCount": max_records,
+                    "gdbVersion": gdb_version or client.default_version}, post=False)
+            except Exception as e:  # layer without the field, no access, etc.
+                skipped.append({"layer": l["name"], "reason": str(e)[:120]})
+                continue
+            for f in j.get("features", []) or []:
+                a = {k.upper(): v for k, v in f.get("attributes", {}).items()}
+                g, t = a.get("ASSETGROUP"), a.get("ASSETTYPE")
+                gname, tname = names.get((g, t), (None, None))
+                found.append({"layer": l["name"], "layerId": l["id"],
+                              "globalId": a.get("GLOBALID"), "objectId": a.get("OBJECTID"),
+                              "assetGroupCode": g, "assetTypeCode": t,
+                              "assetGroup": gname, "assetType": tname,
+                              "assetId": a.get(field.upper())})
+        return {"query": clause, "matches": found[:max_records], "layersSearched": len(layers),
+                "layersSkipped": skipped}
 
     @mcp.tool()
     def network_moments() -> dict:
@@ -486,6 +621,17 @@ def _selftest() -> None:
     assert find_key({"a": [{"controllerDatasetLayers": {"utilityNetworkLayerId": 15}}]},
                     "utilityNetworkLayerId") == 15
     assert pick_system_layer({"dirtyAreasLayerId": 3, "subnetworksTableId": 9}, "subnetwork") == 9
+    k = classify_dirty_status
+    assert k(1)["kind"] == "edit only" and k(1)["validateEvaluates"]
+    assert k(9)["kind"] == "edit + error" and k(9)["validateEvaluates"]
+    assert k(8)["kind"] == "error only" and not k(8)["validateEvaluates"]
+    assert k(40)["kind"] == "error only" and "Update Subnetwork" in k(40)["next"]
+    assert k(0)["kind"] == "topology disabled"
+    layer = {"types": [{"id": 4, "name": "Breaker", "domains": {
+        "ASSETTYPE": {"codedValues": [{"name": "Feeder Breaker", "code": 21}]}}}]}
+    assert asset_names_from_layer(layer) == {(4, 21): ("Breaker", "Feeder Breaker")}
+    named = summarize_trace_result(fake, {5: "ElectricDevice"}, asset_names={(5, 1, 2): ("Fuse", "Cutout")})
+    assert named["byAssetGroupType"][0]["assetGroup"] == "Fuse"
     os.environ["UN_ALLOW_WRITES"] = "false"
     try:
         check_write_allowed(True, "sde.DEFAULT")

@@ -72,7 +72,7 @@ version.
 |---|---|
 | `f` | `html \| json \| pjson \| pbf` (pbf introduced at Enterprise 11.2). Default `html`. |
 | `gdbVersion` (optional) | Geodatabase version name. Default `sde.DEFAULT`. |
-| `sessionId` (optional) | GUID token to work against a locked/exclusive edit session version. **Required** if the target version is currently locked by any session (yours or someone else's) — omitting it fails the request in that case. |
+| `sessionId` (optional) | GUID token that identifies **your own** service session. Esri's wording: if the calling client has started a service session (editing) and holds an **exclusive lock** on the version, the request fails unless `sessionId` is provided. It is **not** needed just because another user has the version open; a trace without it reads the version's saved state and does not see anyone's unsaved edits. Omit it for ordinary read-only traces. |
 | `moment` (optional) | Epoch time in milliseconds — run the trace as of a historical moment instead of the version's current moment. |
 | `outSR` (optional, introduced 11.1) | Output spatial reference (wkid or wkt/wkt2) for trace result geometry. Defaults to the feature service's spatial reference if omitted. |
 | `traceType` (**required**) | `connected \| subnetwork \| subnetworkController \| upstream \| downstream \| loops \| shortestPath \| isolation` |
@@ -111,6 +111,16 @@ version.
   }
 ]
 ```
+### Trace response: `traceResults.elements` (verified against Esri's Trace page)
+Each element carries **codes, not names**: `networkSourceId`, `globalId`, `objectId`,
+`terminalId` (junctions/devices only), `assetGroupCode`, `assetTypeCode`,
+`positionFrom` / `positionTo` (edges only), `flowDirection`
+(`withDigitized` | `againstDigitized` | `indeterminate`, edges only) and, for telecom
+networks, `firstUnit` / `lastUnit`. To show "Service Connection / Meter" to a person,
+map `networkSourceId` and the two codes to names using the network's data element
+(`FeatureServer/queryDataElements`) or the layer's subtypes; do not filter on
+`assetGroupName` in a `jq` or code path, because the field does not exist.
+
 This directly parallels the Pro Help "subnetwork-based trace output" section
 (`Include propagated values` in the Pro UI = `includePropagatedValues` here).
 

@@ -25,23 +25,35 @@ Utility Network questions are hard for general-purpose AI: the answer depends on
 
 ## See it in action
 
-Ask the questions you'd ask a senior UN consultant:
+Real questions with the details a consultant would be given. Full walk-throughs with captured output are in [docs/EXAMPLES.md](docs/EXAMPLES.md).
 
-> *"Apply Asset Package keeps failing when I add gas to our water UN. Pro 3.5, Enterprise 11.3."*
->
-> → Troubleshooting answer walking the four prerequisites that cause most failures (maps closed, topology disabled, Pro/UN version match, both owners on DEFAULT), and why the tool is additive.
+**1. Apply Asset Package fails when adding gas to a water UN**
+> Pro 3.5, Enterprise 11.3. `WaterUN` already has the `Water` domain network. Two maps open, connected as `gis_editor` (owner is `wateradmin`), portal login `jsmith`, version `wateradmin.crew1`, topology enabled for dispatch.
 
-> *"Write the REST request for an isolation trace from this main at the midpoint, stopping at operable valves, on version crew1.outage."*
->
-> → Complete request with `percentAlong`, filter barriers and `gdbVersion`, checked by a validator for the mistakes that make traces silently return nothing.
+Finds **five** violated prerequisites at once (maps open, topology enabled, wrong database user, wrong portal user, not on DEFAULT), gives the fix order, and confirms that applying Gas does not wipe Water because the tool is additive.
 
-> *"Our dirty areas show Status 1, 9 and 40 — which ones matter?"*
->
-> → Decoded bitmask: 1 is a pending edit, 9 and 40 carry feature and subnetwork errors, with the next action for each.
+**2. Isolation trace at the midpoint of main `{8F2A6C1E-...}` on branch `crew1.outage`**
+> Stop at operable `Isolating` valves, domain `Water`, tier `Pressure`, someone else has the version open.
 
-> *"Hook Claude up to our electric UN so dispatch can ask what's downstream of a breaker."*
->
-> → Route recommendation (Esri's MCP beta vs. custom GP tools vs. this MCP server), tool list, auth, write-safety rails and licensing.
+Produces a complete request (`percentAlong: 0.5`, `filterBarriers`, string values, no `sessionId`), and a validator checks it. On [a request with typical mistakes](examples/isolation-trace/request.broken.json) the validator reports seven problems, such as a percent along of 50, a start with no terminal or percent, and a misspelled `tierNam`.
+
+**3. Dirty areas: Status 1 x 41,220, 9 x 312, 8 x 5, 40 x 18, and validate "succeeded"**
+
+```console
+$ python scripts/decode_dirty_status.py 9 8 40
+9: feature inserted or updated; feature error  [edit + error]  ->  Validate will evaluate it. ...
+8: feature error  [error only]  ->  Validate will IGNORE this row. ... fix it by EDITING the feature ...
+40: feature error; subnetwork error  [error only]  ->  Validate will IGNORE this row. ... run Update Subnetwork ...
+```
+
+Rows 8 and 40 have no edit bit, so validate ignores them: edit the feature, then validate.
+
+**4. Claude Desktop for 12 dispatchers on an electric UN (Enterprise 11.5, SAML)**
+> "What is downstream of breaker CB-1042?" and "which feeders have dirty subnetworks?"
+
+Recommends the custom REST MCP server (Esri's MCP beta has no utility network tools), turns "CB-1042" into a globalId with `find_features`, explains SAML-safe auth, and keeps dispatch read-only: write tools are not registered unless `UN_ALLOW_WRITES=true`, and each call needs `confirm=true`.
+
+How these were tested, and where they fell short, is in [docs/TESTING.md](docs/TESTING.md).
 
 ## Quick start
 

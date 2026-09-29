@@ -1,0 +1,30 @@
+{
+  "f": "json",
+  "gdbVersion": "crew1.outage",
+  "traceType": "isolation",
+  "traceLocations": [
+    {
+      "traceLocationType": "startingPoint",
+      "globalId": "{8F2A6C1E-4B7D-4E1A-9C55-2D0F7A1B3E90}",
+      "percentAlong": 0.5
+    }
+  ],
+  "traceConfiguration": {
+    "domainNetworkName": "Water",
+    "tierName": "Pressure",
+    "includeBarriers": true,
+    "includeIsolated": true,
+    "validateConsistency": true,
+    "filterBarriers": [
+      {"name": "Category", "type": "category", "operator": "includesTheValues",
+       "value": "Isolating", "combineUsingOr": false, "isSpecificValue": true},
+      {"name": "Operable", "type": "networkAttribute", "operator": "equal",
+       "value": "1", "combineUsingOr": false, "isSpecificValue": true}
+    ],
+    "filterScope": "junctions"
+  },
+  "resultTypes": [
+    {"type": "elements", "includeGeometry": false,
+     "includePropagatedValues": false, "includeDomainDescriptions": true}
+  ]
+}

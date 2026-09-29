@@ -237,8 +237,22 @@ one row per subnetwork controller / subnetwork:
 | `SUBNETWORKCONTROLLERNAME` | Subnetwork controller name | Name of the controlling device/junction object |
 | `TIERRANK` | Tier rank | Rank of the owning tier |
 | `TIERNAME` | Tier name | Name of the owning tier |
-| `TIERTOPOLOGYTYPE` | Tier topology type | Mesh/Radial |
-| *(also tracked, per Esri docs)* | | Clean/dirty/invalid status; whether the controller's terminal has been deleted (`ISDELETED`-style flag); last export time; editor-tracking fields |
+| `TIERTOPOLOGYTYPE` | Tier topology type | Topology type of the tier (mesh or radial) |
+| `FEATUREGLOBALID` | Feature global ID | Global ID of the controller's feature |
+| `FEATUREASSETGROUP` / `FEATUREASSETTYPE` | Asset group / asset type | Asset group and asset type names of the controller |
+| `FEATURESOURCEID` | Feature source ID | Class of the controller |
+| `FEATURETERMINALID` | Feature terminal ID | Terminal designated as the subnetwork controller |
+| `DOMAINNETWORKNAME` | Domain network name | Domain network that contains the controller |
+| `SUBNETWORKNAME` | Subnetwork name | Name of the subnetwork |
+| **`ISDIRTY`** | Is dirty | **Whether the subnetwork is clean, dirty or invalid.** The exact stored codes are not given on Esri's table page; read a few rows and compare with the Pro status before filtering on a number |
+| `ISDELETED` | Is deleted | Whether the controller terminal still exists (true = removed) |
+| `SUBNETLINEGLOBALID` | Subnet line global ID | Global ID of the associated SubnetLine record |
+| `LASTUPDATESUBNETWORK` | Last update subnetwork | Last time Update Subnetwork ran for it |
+| `LASTACKEXPORTSUBNETWORK` | Last acknowledged export | Last export time when export acknowledgement is enabled |
+| `DESCRIPTION`, `NOTES` | Description, notes | Free text about the controller |
+| `CREATIONDATE`, `CREATOR`, `LASTUPDATE`, `UPDATEDBY`, `GLOBALID` | Editor tracking | Who and when; row global ID |
+
+*(Field names verified against Esri's "Subnetworks table" page, Sept 2026.)*
 
 This table updates whenever the subnetwork is updated, topology is
 enabled/validated, or subnetwork edits occur — it's the authoritative place to

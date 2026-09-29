@@ -66,6 +66,7 @@ python tools/new_reference.py --area pro-help \
 ```bash
 python tools/lint_references.py          # structure, sources, index, links
 python tools/freshness_report.py         # refresh docs/FRESHNESS.md
+python -m unittest discover -s tests     # scripts, validator, MCP server vs. mock service
 ```
 
 **5. Update `CHANGELOG.md`** under an "Unreleased" heading, then open a PR. CI runs the linter, script self-tests and the package build.

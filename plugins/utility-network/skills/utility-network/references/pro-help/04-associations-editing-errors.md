@@ -110,6 +110,35 @@ sublayer/table when you need the raw bitmask, use Error Inspector for a
 pre-filtered, human-readable error list.
 **A `Status` of 0 displays when network topology is disabled.**
 
+### Which dirty areas Validate will and won't touch (verified against Esri's Dirty areas and Errors pages)
+Esri: during validation, **only edit dirty areas, or error dirty areas that also
+carry an edit bit (1, 2 or 4), are evaluated to be cleaned. Error dirty areas
+without an edit bit are ignored.** Consequences worth telling users plainly:
+
+| Status | Edit bit? | Validate re-evaluates it? | What clears it |
+|---|---|---|---|
+| 1, 2, 4 (and sums such as 3, 5, 7) | yes | yes | Validate Network Topology (as long as no error exists in the validation extent) |
+| 9, 10, 12, 17, 33, 41 ... (edit + error) | yes | yes | Fix the cause, then validate; if the feature still violates a rule the error bit stays |
+| **8, 16, 32 and sums of only error bits such as 24, 40, 48, 56** | **no** | **no, ignored** | **Edit the feature (geometry, attribute, rule or subnetwork definition) to fix the cause. The edit adds an edit bit, and the next validate can clear it.** Running validate again does nothing |
+
+So "Validate said success but my Status 8 and 40 rows are still there" is
+expected behaviour, not a failed validate. "Success" only means the job ran.
+Errors originate from enabling topology, validating topology or updating a
+subnetwork, and are corrected by editing the feature, the network rules or the
+subnetwork definition, then re-validating.
+
+- **Subnetwork errors (bit 32)** are discovered by Update Subnetwork (Error IDs
+  24 and 26 to 30 in Esri's table). When one occurs, the subnetwork status of
+  every controller in the Subnetworks table for that subnetwork becomes
+  **Invalid** until it updates cleanly. Fix the cause, then Update Subnetwork
+  again.
+- **Object errors (bit 16)** come from junction or edge objects with invalid
+  containment or structural attachment rules (Error IDs 17, 18 and 41 to 44).
+  Fix by editing attributes or adding the rule.
+- A 9 is an edit plus a feature error; after validation it becomes 8 if the
+  error persists (then it needs a feature edit, not another validate) or
+  disappears if the edit fixed it.
+
 ### Error Inspector pane
 - Opened from the **Contents** pane (expand the utility network layer → the
   **Dirty Areas** sublayer is there).
