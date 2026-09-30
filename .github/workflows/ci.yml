@@ -12,10 +12,10 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install
-        run: pip install "mcp[cli]<2" requests pyyaml build
+        run: pip install pyyaml
       - name: JSON manifests are valid
         run: |
-          for f in .claude-plugin/marketplace.json plugins/utility-network/.claude-plugin/plugin.json mcp-server/server.json plugins/utility-network/skills/utility-network/evals/*.json; do
+          for f in .claude-plugin/marketplace.json plugins/utility-network/.claude-plugin/plugin.json plugins/utility-network/skills/utility-network/evals/*.json; do
             python -m json.tool "$f" > /dev/null && echo "ok $f"
           done
       - name: SKILL.md frontmatter
@@ -35,15 +35,10 @@ jobs:
         run: |
           python tools/freshness_report.py
           git diff --exit-code docs/FRESHNESS.md || (echo "::warning::docs/FRESHNESS.md is out of date — run python tools/freshness_report.py and commit"; true)
-      - name: MCP server copies are identical
-        run: cmp plugins/utility-network/skills/utility-network/scripts/un_mcp_server.py mcp-server/src/utility_network_mcp/server.py
       - name: Script self-tests
         run: |
           cd plugins/utility-network/skills/utility-network/scripts
-          python un_mcp_server.py --selftest
           python decode_dirty_status.py 0 10 40
           python association_types.py --table
-      - name: Tests (scripts, validator, MCP server against a mock service)
+      - name: Tests (helper scripts and trace-request validator)
         run: python -m unittest discover -s tests -v
-      - name: Build MCP package
-        run: python -m build mcp-server

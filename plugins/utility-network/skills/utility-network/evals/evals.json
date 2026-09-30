@@ -177,13 +177,13 @@
     {
       "id": 13,
       "name": "specific-dispatch-mcp-breaker-cb-1042",
-      "prompt": "Dispatch (12 people, none have ArcGIS Pro licences) wants to ask Claude Desktop things like 'what is downstream of breaker CB-1042?' and 'which feeders have dirty subnetworks?' on our electric utility network. We run ArcGIS Enterprise 11.5 with a federated portal (SAML SSO), the UN dataset is version 7 and branch versioned, and the service was published from Pro. Should we use Esri's MCP support, custom geoprocessing tools, or your utility network MCP server? Give me the recommended route, the tool list, how to authenticate, the Claude Desktop config, the safety controls (dispatch must never be able to edit), and what licensing dispatch needs.",
+      "prompt": "Dispatch (12 people, none have ArcGIS Pro licences) wants to ask Claude Desktop things like 'what is downstream of breaker CB-1042?' and 'which feeders have dirty subnetworks?' on our electric utility network. We run ArcGIS Enterprise 11.5 with a federated portal (SAML SSO), the UN dataset is version 7 and branch versioned, and the service was published from Pro. Should we use Esri's MCP support, custom geoprocessing tools, or a custom MCP server over the UN REST API? Give me the recommended route, the tool list, how to authenticate, the Claude Desktop config, the safety controls (dispatch must never be able to edit), and what licensing dispatch needs.",
       "files": [],
-      "expected_output": "Route C recommended, Esri MCP beta has no UN tools, find_features for asset ID, SAML-compatible auth, read-only controls, licensing.",
+      "expected_output": "Route C recommended, Esri MCP beta has no UN tools, an asset-ID lookup tool, SAML-compatible auth, read-only controls, licensing.",
       "assertions": [
         "States Esri's MCP in ArcGIS Enterprise (beta) has no utility network tools such as trace",
-        "Recommends the custom REST MCP server and says why GP tools or Esri's overlay alone are weaker",
-        "Handles the 'CB-1042' problem: an asset ID must be turned into a globalId (find_features), and a device start needs a terminalId",
+        "Recommends the custom REST MCP server (as a design to build, not a shipped product) and says why GP tools or Esri's overlay alone are weaker",
+        "Handles the 'CB-1042' problem: an asset ID must be turned into a globalId (a find-by-asset-ID lookup), and a device start needs a terminalId",
         "Auth suits SAML: OAuth client credentials or a pre-issued token, notes generateToken does not work for SAML-only logins, and warns about secrets on 12 machines",
         "Read-only controls: write tools not registered by default, service account without the Advanced Editing extension, view-only sharing",
         "Says trace and query need no Advanced Editing extension and no Pro licence",

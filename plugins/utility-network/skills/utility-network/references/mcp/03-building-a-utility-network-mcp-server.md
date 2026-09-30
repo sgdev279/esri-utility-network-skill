@@ -15,7 +15,7 @@ than only search portal content.
 |---|---|---|---|---|
 | **A. Esri's MCP in ArcGIS Enterprise (beta)** | Esri's MCP overlay on ArcGIS Server; generic tools + tagged GP tasks | Generic layers only, unless you add GP tasks | Low | They want Esri-supported, portal-governed access and can live with beta. See `01-*.md`. |
 | **B. Route A + custom GP task tools** | Publish script tools that wrap `arcpy.un.*`, tag `mcp` | Anything arcpy can do | Medium | They want UN operations but must stay inside Esri's MCP overlay. Worked example in `02-*.md`. |
-| **C. Custom MCP server over UN REST** | Your own MCP server calling `UtilityNetworkServer` + `FeatureServer` | Full REST surface | Medium | They want first-class UN tools today, from any MCP client, on any Enterprise version with UN services. Template: `scripts/un_mcp_server.py`. |
+| **C. Custom MCP server over UN REST** | Your own MCP server calling `UtilityNetworkServer` + `FeatureServer` | Full REST surface | Medium | They want first-class UN tools today, from any MCP client, on any Enterprise version with UN services. This skill does not ship an implementation; use this file as the design. |
 | **D. MCP ↔ Pro Add-in bridge** | MCP server talks to a running ArcGIS Pro via an Add-in (e.g. named pipes) | Full C# SDK, desktop session | High | The agent must act inside a user's Pro session (their map, selection, local file/mobile gdb, single-user deployment). |
 
 Default recommendation: **C for UN analysis and troubleshooting**, B when
@@ -40,7 +40,7 @@ the tool and what the arguments look like.
 | `query_associations` | read | `UtilityNetworkServer/associations/query` | "What's in this vault / on this pole / connected to this device". |
 | `query_subnetworks` | read | `FeatureServer/<subnetworksTable>/query` | "Which subnetworks are dirty", "who feeds RMT001". |
 | `dirty_area_summary` | read | `FeatureServer/<dirtyAreas>/query` with `outStatistics` | Health check: pending edits vs. real errors, decoded from the Status bitmask, with whether Validate will evaluate each row (error-only rows are ignored by validate). |
-| `find_features` | read | `FeatureServer/<layer>/query` on each feature layer | People say "CB-1042", the trace needs a globalId. Returns globalId plus asset group/type names. Field from `UN_ASSET_ID_FIELD`. |
+| `find_features` | read | `FeatureServer/<layer>/query` on each feature layer | People say "CB-1042", the trace needs a globalId. Returns globalId plus asset group/type names. Make the asset-ID field configurable (default `ASSETID`). |
 | `network_moments` | read | `UtilityNetworkServer/queryNetworkMoments` | Is topology valid; when it was last enabled. |
 | `job_status` | read | the `statusUrl` from an async job | Polls long-running operations. |
 | `validate_network_topology` | **write** | `UtilityNetworkServer/validateNetworkTopology` | Opt-in only. |
@@ -120,28 +120,26 @@ server can therefore run under a cheaper user type.
 6. **Log every write** with the requesting user, version, parameters and
    response.
 
-### Running the template
+### Configuring a server built to this design
 
-The template uses the MCP Python SDK 1.x `FastMCP` API. SDK 2.x renamed it
-(`MCPServer`), so pin `mcp<2` until the template is ported.
+Suggested environment convention (names are a suggestion, not a shipped product):
+`UN_FEATURE_SERVICE_URL` (the FeatureServer URL), `UN_PORTAL_URL`, then one auth
+route: `UN_TOKEN`, `UN_CLIENT_ID` + `UN_CLIENT_SECRET` (OAuth client credentials),
+or `UN_USERNAME` + `UN_PASSWORD` (generateToken; fails for SAML-only portals).
+Also `UN_ALLOW_WRITES` (default off), `UN_DEFAULT_VERSION` and `UN_ASSET_ID_FIELD`.
 
-```bash
-pip install "mcp[cli]<2" requests
-export UN_FEATURE_SERVICE_URL="https://gis.example.com/server/rest/services/Electric/FeatureServer"
-export UN_PORTAL_URL="https://gis.example.com/portal"
-export UN_CLIENT_ID=... UN_CLIENT_SECRET=...        # or UN_USERNAME/UN_PASSWORD, or UN_TOKEN
-python scripts/un_mcp_server.py --selftest          # offline checks
-python scripts/un_mcp_server.py                     # stdio MCP server
-```
+The MCP Python SDK 1.x exposes `FastMCP`; SDK 2.x renamed it (`MCPServer`), so
+pin the SDK major version you tested against.
 
-Claude Desktop / Claude Code config entry:
+Claude Desktop / Claude Code config entry (adjust `command` and `args` to how
+the server is installed):
 
 ```json
 {
   "mcpServers": {
     "utility-network": {
-      "command": "python",
-      "args": ["/path/to/un_mcp_server.py"],
+      "command": "<COMMAND_THAT_STARTS_YOUR_SERVER>",
+      "args": [],
       "env": {
         "UN_FEATURE_SERVICE_URL": "https://gis.example.com/server/rest/services/Electric/FeatureServer",
         "UN_PORTAL_URL": "https://gis.example.com/portal",
@@ -187,8 +185,9 @@ confirmation rule as Route C.
 1. Name which route fits and why in one or two sentences (use the table above).
 2. State what works today vs. what needs building — no overpromising about
    Esri's beta.
-3. For Route C, offer the template in `scripts/un_mcp_server.py` and list the
-   environment variables and the Claude Desktop config block.
+3. For Route C, give the tool set, the REST call behind each tool, the
+   environment variables and the client config block from this file. Say
+   plainly that this skill describes the design and does not ship a server.
 4. Always mention the write-safety rails and the licensing split
    (read tools vs. write tools).
 5. Date-stamp beta facts ("as of Sept 2026").

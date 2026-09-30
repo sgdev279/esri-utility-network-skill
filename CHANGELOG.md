@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+Repository
+- The MCP server (`mcp-server/`, `scripts/un_mcp_server.py`, its mock-service tests, and the PyPI and MCP Registry release steps) has been removed from this repository. It moves to its own repository. This repo is now the skill only.
+- The skill keeps its MCP guidance: `references/mcp/*` and the MCP section of SKILL.md describe Esri's MCP offerings, the four routes, and the design of a UN MCP server (tool set, REST shapes, auth, write safety). It no longer points to a bundled implementation.
+- Released `utility-network-mcp` 0.2.0 on PyPI and its MCP Registry entry are not affected by this change; they are no longer maintained from here.
+- CI, issue templates, labels, SECURITY, CONTRIBUTING, README and roadmap updated to match.
+
 ## 2.1.0 — 2026-09-29
 Skill
 - New reference `pro-help/11-migration-and-schema-mapping.md`: choosing between Foundation, Migration Wizard, Migrate To Utility Network tool and manual setup; schema mapping vs object mapping; the mapping-workbook loading workflow; Migrate To Utility Network parameters and limits; Analyze Network Data / Apply Error Resolutions loop; relationship classes to associations (`C_Associations`, Sync the C Tables); pre-load QC rules; post-migration order.

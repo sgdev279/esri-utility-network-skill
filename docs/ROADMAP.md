@@ -17,16 +17,6 @@ Content the skill doesn't cover well yet, roughly in priority order. Want to hel
 | Low | Telecom circuits end-to-end workflow in Pro | Only REST is covered in depth | new `pro-help/` file |
 | Medium | Migration follow-ups: asset package table schema in field-level detail, per-release availability of the Migration toolset, worked migration case studies | Core migration content is in `pro-help/11-*`; these are the remaining gaps | `pro-help/11-*` |
 
-## MCP server
-
-| Priority | Item |
-|---|---|
-| High | Port to MCP Python SDK 2.x (`MCPServer`) and drop the `mcp<2` pin |
-| High | Integration test against a public or sample UN service |
-| Medium | `export_subnetwork` tool that writes results to a file instead of the context window |
-| Medium | Streamable HTTP transport + per-user auth for team deployments |
-| Low | Network diagram tools via `NetworkDiagramServer` |
-
 ## Skill quality
 
 | Priority | Item |

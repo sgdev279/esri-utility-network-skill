@@ -5,7 +5,6 @@ on:
 
 permissions:
   contents: write
-  id-token: write   # PyPI trusted publishing + MCP Registry OIDC
 
 jobs:
   release:
@@ -25,29 +24,3 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: utility-network.skill
-
-      - name: Build MCP package
-        run: pip install build && python -m build mcp-server
-
-      - name: Publish to PyPI (trusted publishing)
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: mcp-server/dist/
-          skip-existing: true   # re-running a release shouldn't fail on an already-uploaded version
-
-      - name: Publish to the MCP Registry
-        run: |
-          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
-          sleep 60   # let PyPI serve the new release before the registry verifies it
-          cd mcp-server
-          ../mcp-publisher login github-oidc
-          if ! out=$(../mcp-publisher publish 2>&1); then
-            echo "$out"
-            if echo "$out" | grep -q "duplicate version"; then
-              echo "This version is already in the MCP Registry - nothing to do."
-            else
-              exit 1
-            fi
-          else
-            echo "$out"
-          fi

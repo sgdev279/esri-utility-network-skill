@@ -69,20 +69,15 @@ python tools/freshness_report.py         # refresh docs/FRESHNESS.md
 python -m unittest discover -s tests     # scripts, validator, MCP server vs. mock service
 ```
 
-**5. Update `CHANGELOG.md`** under an "Unreleased" heading, then open a PR. CI runs the linter, script self-tests and the package build.
+**5. Update `CHANGELOG.md`** under an "Unreleased" heading, then open a PR. CI runs the linter, script self-tests and the unit tests.
 
 ## Changing SKILL.md
 
 `SKILL.md` is loaded on every UN question, so keep it lean: workflow, routing, answer formats and the index. Detail belongs in reference files. If you change the description (the text that decides when the skill triggers), run the trigger checks in `evals/trigger_eval.json` with skill-creator before and after.
 
-## Changing the MCP server
-
-The server exists in two places that must stay identical:
-`plugins/.../scripts/un_mcp_server.py` and `mcp-server/src/utility_network_mcp/server.py`. CI fails if they differ. Run `python mcp-server/src/utility_network_mcp/server.py --selftest` and keep write tools behind `UN_ALLOW_WRITES` plus `confirm=true`.
-
 ## Releases
 
-Maintainers bump versions (`plugin.json` for the skill; `pyproject.toml` and `server.json` for the server), move "Unreleased" notes to a version heading in `CHANGELOG.md`, then create a release on GitHub (Releases → Draft a new release → new tag `vX.Y.Z` on `main` → Publish). The release workflow publishes the `.skill` file, the PyPI package and the MCP Registry entry.
+Maintainers bump versions (`plugin.json`), move "Unreleased" notes to a version heading in `CHANGELOG.md`, then create a release on GitHub (Releases → Draft a new release → new tag `vX.Y.Z` on `main` → Publish). The release workflow attaches the `.skill` file to the release.
 
 ## Ground rules
 

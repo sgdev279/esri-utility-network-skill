@@ -5,8 +5,7 @@ earlyadopter.esri.com "MCP in ArcGIS" program page. Last reviewed: 2026-09-28.*
 
 **Where to go next**: this file covers Esri's own MCP offerings. For building
 a UN-capable MCP server (the usual real need), read
-`03-building-a-utility-network-mcp-server.md` and use
-`scripts/un_mcp_server.py`. For the GP-task route inside Esri's overlay,
+`03-building-a-utility-network-mcp-server.md`. For the GP-task route inside Esri's overlay,
 read `02-custom-gp-tool-worked-example-outage-isolation.md`.
 
 **Status flag**: everything in this file describes **beta** functionality as
@@ -122,7 +121,7 @@ capability.**
 | "Get a map image showing network features" | **Plausible today** — `Get Map Image` is a generic tool; works the same way it would for any map service. |
 | "Run a trace through natural language via MCP" | **Not built-in.** Would require publishing a custom GP service wrapping `arcpy.un.Trace` (or the `Trace` GP tool), tagging it `mcp`, and exposing it as a custom tool — a genuine build effort, not a flip-a-switch feature. |
 | "Validate topology / manage subnetworks via MCP" | Same as above — only reachable by wrapping the relevant `arcpy.un`/`arcpy.nd` GP tools as custom published services. |
-| "Direct MCP access to `UtilityNetworkServer`/`NetworkDiagramServer`/`VersionManagementServer` REST operations" | **Not through Esri's overlay** — it only exposes GP tasks, not arbitrary REST services. **Available today via a custom MCP server** that calls the REST API directly (Route C in `03-building-a-utility-network-mcp-server.md`; template `scripts/un_mcp_server.py`). |
+| "Direct MCP access to `UtilityNetworkServer`/`NetworkDiagramServer`/`VersionManagementServer` REST operations" | **Not through Esri's overlay** — it only exposes GP tasks, not arbitrary REST services. **Available today via a custom MCP server** that calls the REST API directly (Route C in `03-building-a-utility-network-mcp-server.md`). |
 
 ## Practical guidance for Claude
 

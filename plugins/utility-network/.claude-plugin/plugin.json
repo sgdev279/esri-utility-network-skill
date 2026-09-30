@@ -1,12 +1,12 @@
 {
   "name": "utility-network",
   "version": "2.1.0",
-  "description": "Expert reference for the Esri ArcGIS Utility Network: tracing, subnetworks, dirty areas, asset packages, dataset versions, REST/JS/C#/arcpy, and connecting AI agents via MCP",
+  "description": "Expert reference for the Esri ArcGIS Utility Network: tracing, subnetworks, dirty areas, asset packages, dataset versions, migration and schema mapping, REST/JS/C#/arcpy, and MCP guidance",
   "author": {
     "name": "Sayanta Ghosh"
   },
   "homepage": "https://github.com/sgdev279/esri-utility-network-skill",
   "repository": "https://github.com/sgdev279/esri-utility-network-skill",
   "license": "MIT",
-  "keywords": ["esri", "arcgis", "utility-network", "gis", "mcp", "electric", "gas", "water", "telecom"]
+  "keywords": ["esri", "arcgis", "utility-network", "gis", "electric", "gas", "water", "telecom"]
 }

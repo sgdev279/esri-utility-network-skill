@@ -1,6 +1,6 @@
 {
   "name": "esri-utility-network",
-  "description": "Esri ArcGIS Utility Network expertise for Claude: skill + MCP server template",
+  "description": "Esri ArcGIS Utility Network expertise for Claude: skill",
   "owner": {
     "name": "Sayanta Ghosh"
   },
@@ -8,7 +8,7 @@
     {
       "name": "utility-network",
       "source": "./plugins/utility-network",
-      "description": "Expert reference for the Esri ArcGIS Utility Network: tracing, subnetworks, dirty areas, asset packages, versions, REST/JS/C#/arcpy, and MCP integration"
+      "description": "Expert reference for the Esri ArcGIS Utility Network: tracing, subnetworks, dirty areas, asset packages, versions, migration and schema mapping, and REST/JS/C#/arcpy"
     }
   ]
 }

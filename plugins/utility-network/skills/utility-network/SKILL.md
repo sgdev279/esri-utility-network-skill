@@ -74,12 +74,12 @@ Key facts to carry into every MCP answer:
 - Esri's Enterprise overlay is **beta** (snake_case tools such as
   `query_data`, `describe_layer`, `get_gp_task_definition`); date-stamp these
   facts ("as of Sept 2026").
-- Route C template: `scripts/un_mcp_server.py` — tools `describe_network`,
-  `list_trace_configurations`, `trace` (summarised results),
-  `query_associations`, `query_subnetworks`, `dirty_area_summary`,
-  `find_features` (asset ID to globalId), `network_moments`, `job_status`; write tools `validate_network_topology`
-  and `update_subnetwork` only when `UN_ALLOW_WRITES=true` **and** called
-  with `confirm=true`.
+- Route C is a design this skill describes, not a server it ships. Give the
+  tool set (`describe_network`, `list_trace_configurations`, `trace`,
+  `query_associations`, `query_subnetworks`, `dirty_area_summary`, a
+  find-by-asset-ID lookup, `network_moments`, `job_status`), the REST shapes
+  and the write gating (validate and update-subnetwork tools only behind an
+  explicit write switch **and** a per-call confirmation) from `mcp/03`.
 - Always cover: which route and why, read vs. write tiers, auth pattern,
   licensing split (trace/query need no user type extension; validate/update
   need Advanced Editing), and result-size handling.
@@ -197,7 +197,7 @@ parts involved, then the code in the target surface (format 3).
 |---|---|
 | `mcp/01-mcp-and-utility-network.md` | What Esri's MCP offerings do and don't cover |
 | `mcp/02-custom-gp-tool-worked-example-outage-isolation.md` | Route B worked example |
-| `mcp/03-building-a-utility-network-mcp-server.md` | Route C/D design, REST shapes, auth, safety, client config |
+| `mcp/03-building-a-utility-network-mcp-server.md` | Route C/D design: tool set, REST shapes, auth, safety rails, client config |
 
 ## Scripts
 
@@ -206,7 +206,6 @@ parts involved, then the code in the target surface (format 3).
 | `scripts/decode_dirty_status.py 10 17` | Explain dirty-area Status values (edits vs errors) and the next action |
 | `scripts/association_types.py 5` | Convert association types between integer codes, CSV names, REST names, GP keywords |
 | `scripts/build_trace_request.py --check req.json` | Catch silent-failure mistakes in a REST trace request; or build one from flags |
-| `scripts/un_mcp_server.py` | Route C MCP server template (`--selftest` runs offline checks) |
 
 ## Accuracy rules
 

@@ -1,6 +1,6 @@
 # Worked examples
 
-Four real questions, each with the exact details a consultant would be given, and what this repo actually produces for them. The command output and JSON below were captured by running the code in this repo; the MCP output comes from the bundled mock service in `tests/`, not from a live utility network. See [TESTING.md](TESTING.md) for how the answers were checked and where they fell short.
+Four real questions, each with the exact details a consultant would be given, and what this repo actually produces for them. The command output and JSON below were captured by running the scripts in this repo. See [TESTING.md](TESTING.md) for how the answers were checked and where they fell short.
 
 ## 1. "Apply Asset Package fails when I add gas to our water UN"
 
@@ -106,51 +106,14 @@ $ python scripts/decode_dirty_status.py 1 2 9 8 40
 
 The key fact (Esri, Dirty areas page): **Validate Network Topology only evaluates dirty areas that carry an edit bit (1, 2 or 4).** Status 8 and 40 are error-only rows, so validate ignores them, and re-running it does nothing. Edit the feature (or the rule, or the subnetwork definition) to fix the cause; the edit adds an edit bit and the next validate can clear it. For 40 (bit 32, subnetwork error), run Update Subnetwork afterwards: the subnetwork stays Invalid until it updates cleanly. "Success" only means the job ran.
 
-The MCP server's `dirty_area_summary` returns the same classification for a live service (mock data matching the question):
-
-```text
-  Status  1  x  41220   edit only     validate evaluates it: True
-  Status  2  x    130   edit only     validate evaluates it: True
-  Status  8  x      5   error only    validate evaluates it: False
-  Status  9  x    312   edit + error  validate evaluates it: True
-  Status 40  x     18   error only    validate evaluates it: False
-  errorOnlyIgnoredByValidate: 23
-```
-
 ## 4. "Hook Claude up to our electric UN so dispatch can ask what's downstream of breaker CB-1042"
 
-> 12 dispatchers, no Pro licences. Enterprise 11.5, federated portal with SAML SSO, dataset v7, branch versioned, published from Pro. Esri's MCP, custom GP tools, or this MCP server?
+> 12 dispatchers, no Pro licences. Enterprise 11.5, federated portal with SAML SSO, dataset v7, branch versioned, published from Pro. Esri's MCP, custom GP tools, or a custom MCP server?
 
-The recommendation (from `mcp/01` to `mcp/03`): the **custom REST MCP server** (this repo's `utility-network-mcp`). Esri's MCP beta for Enterprise has generic tools (search, `describe_layer`, `query_data`, GP jobs) and **no utility network tools**, so it cannot answer "what is downstream of CB-1042". GP tools work but you build and maintain one per question.
+The recommendation (from `mcp/01` to `mcp/03`): a **custom MCP server over the UN REST API** (Route C). Esri's MCP beta for Enterprise has generic tools (search, `describe_layer`, `query_data`, GP jobs) and **no utility network tools**, so it cannot answer "what is downstream of CB-1042". GP tools work but you build and maintain one per question. This skill gives the design and tool set; it does not ship a server.
 
-Two things a dispatcher's question needs that were missing until version 0.2.0 of the server: people say "CB-1042", but a trace needs a `globalId` (and a `terminalId` for a device), and trace results carry codes. `find_features` now does the lookup:
-
-```json
-{
-  "query": "ASSETID = 'CB-1042'",
-  "matches": [
-    {
-      "layer": "Electric Device",
-      "layerId": 1,
-      "globalId": "{8F2A6C1E-4B7D-4E1A-9C55-2D0F7A1B3E90}",
-      "objectId": 101,
-      "assetGroupCode": 4,
-      "assetTypeCode": 21,
-      "assetGroup": "Breaker",
-      "assetType": "Feeder Breaker",
-      "assetId": "CB-1042"
-    }
-  ],
-  "layersSkipped": [
-    {
-      "layer": "Electric Line",
-      "reason": "{\"code\": 400, \"message\": \"Invalid field: ASSETID\"}"
-    }
-  ]
-}
-```
-
-- **Auth on SAML:** `generateToken` with a password does not work for SAML-only accounts. Use OAuth2 client credentials under a dedicated read-only portal account, or a pre-issued token. Do not put the client secret on 12 machines: for a team, host the server once and put per-user SSO in front of it (the server itself is stdio and single-user).
-- **Read-only:** `validate_network_topology` and `update_subnetwork` are not even registered unless `UN_ALLOW_WRITES=true`, and each call also needs `confirm=true`. Give the account no Advanced Editing extension and view-only sharing.
+- **Asset IDs:** people say "CB-1042", but a trace needs a `globalId` (and a `terminalId` for a device), and trace results carry codes, not names. The design includes a find-by-asset-ID tool that queries each feature layer, and name resolution from the asset group and type codes.
+- **Auth on SAML:** `generateToken` with a password does not work for SAML-only accounts. Use OAuth2 client credentials under a dedicated read-only portal account, or a pre-issued token. Do not put the client secret on 12 machines: for a team, host the server once and put per-user SSO in front of it.
+- **Read-only:** register the write tools (validate, update subnetwork) only behind an explicit operator switch, and require a per-call confirmation. Give the account no Advanced Editing extension and view-only sharing.
 - **Licensing:** trace and query need no ArcGIS Pro and no Advanced Editing user type extension.
 - **Still unverified:** the stored codes of `ISDIRTY` (clean / dirty / invalid) are not listed on Esri's table page; read a few rows before filtering on a number.
