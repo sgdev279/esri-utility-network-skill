@@ -1,6 +1,6 @@
 # Worked examples
 
-Four real questions, each with the exact details a consultant would be given, and what this repo actually produces for them. The command output and JSON below were captured by running the scripts in this repo. See [TESTING.md](TESTING.md) for how the answers were checked and where they fell short.
+Three real questions, each with the exact details a consultant would be given, and what this repo actually produces for them. The command output and JSON below were captured by running the scripts in this repo. See [TESTING.md](TESTING.md) for how the answers were checked and where they fell short.
 
 ## 1. "Apply Asset Package fails when I add gas to our water UN"
 
@@ -105,15 +105,3 @@ $ python scripts/decode_dirty_status.py 1 2 9 8 40
 ```
 
 The key fact (Esri, Dirty areas page): **Validate Network Topology only evaluates dirty areas that carry an edit bit (1, 2 or 4).** Status 8 and 40 are error-only rows, so validate ignores them, and re-running it does nothing. Edit the feature (or the rule, or the subnetwork definition) to fix the cause; the edit adds an edit bit and the next validate can clear it. For 40 (bit 32, subnetwork error), run Update Subnetwork afterwards: the subnetwork stays Invalid until it updates cleanly. "Success" only means the job ran.
-
-## 4. "Hook Claude up to our electric UN so dispatch can ask what's downstream of breaker CB-1042"
-
-> 12 dispatchers, no Pro licences. Enterprise 11.5, federated portal with SAML SSO, dataset v7, branch versioned, published from Pro. Esri's MCP, custom GP tools, or a custom MCP server?
-
-The recommendation (from `mcp/01` to `mcp/03`): a **custom MCP server over the UN REST API** (Route C). Esri's MCP beta for Enterprise has generic tools (search, `describe_layer`, `query_data`, GP jobs) and **no utility network tools**, so it cannot answer "what is downstream of CB-1042". GP tools work but you build and maintain one per question. This skill gives the design and tool set; it does not ship a server.
-
-- **Asset IDs:** people say "CB-1042", but a trace needs a `globalId` (and a `terminalId` for a device), and trace results carry codes, not names. The design includes a find-by-asset-ID tool that queries each feature layer, and name resolution from the asset group and type codes.
-- **Auth on SAML:** `generateToken` with a password does not work for SAML-only accounts. Use OAuth2 client credentials under a dedicated read-only portal account, or a pre-issued token. Do not put the client secret on 12 machines: for a team, host the server once and put per-user SSO in front of it.
-- **Read-only:** register the write tools (validate, update subnetwork) only behind an explicit operator switch, and require a per-call confirmation. Give the account no Advanced Editing extension and view-only sharing.
-- **Licensing:** trace and query need no ArcGIS Pro and no Advanced Editing user type extension.
-- **Still unverified:** the stored codes of `ISDIRTY` (clean / dirty / invalid) are not listed on Esri's table page; read a few rows before filtering on a number.

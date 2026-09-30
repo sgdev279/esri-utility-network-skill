@@ -3,22 +3,6 @@
   "evals": [
     {
       "id": 1,
-      "name": "mcp-agent-for-electric-un",
-      "prompt": "We run ArcGIS Enterprise 11.5 with an electric utility network (dataset v7). I want Claude Desktop to answer things like 'what customers are downstream of breaker XYZ' and 'which subnetworks are dirty'. How do I hook it up? Esri's MCP thing?",
-      "expected_output": "Recommends a route (custom UN MCP server as default, Esri overlay limits explained), tool list, setup, safety, licensing.",
-      "files": [],
-      "assertions": [
-        "States that Esri's MCP in ArcGIS Enterprise beta has no built-in utility-network tools (trace etc.)",
-        "Recommends a specific route and explains why (e.g. custom MCP server over UtilityNetworkServer REST, or GP-task tools)",
-        "Lists concrete tools including a downstream trace tool and a dirty subnetwork / subnetworks query",
-        "Separates read-only tools from write tools and requires confirmation or opt-in for writes",
-        "Mentions that trace/query do not need the Advanced Editing user type extension while validate/update do",
-        "Gives setup details: auth method and an MCP client configuration block or env vars",
-        "Flags beta/date caveats for Esri MCP"
-      ]
-    },
-    {
-      "id": 2,
       "name": "apply-asset-package-failure",
       "prompt": "Apply Asset Package keeps failing on our enterprise gdb when I try to add the gas domain to our existing water UN. Pro 3.5, Enterprise 11.3. What am I doing wrong?",
       "expected_output": "Troubleshooting format; four prerequisites (maps closed, topology disabled, Pro/UN version match, owners + DEFAULT); notes additive behaviour.",
@@ -33,7 +17,7 @@
       ]
     },
     {
-      "id": 3,
+      "id": 2,
       "name": "rest-isolation-trace-json",
       "prompt": "Write me the REST request to run an isolation trace from a water main (globalId {5B3C...}) at the midpoint, stopping at operable isolating valves, against version 'crew1.outage'. Domain network is Water, tier is Pressure.",
       "expected_output": "Complete trace request with percentAlong 0.5, isolation traceType, filterBarriers using category Isolating + operable, gdbVersion; code output format.",
@@ -48,7 +32,7 @@
       ]
     },
     {
-      "id": 4,
+      "id": 3,
       "name": "dirty-area-status-decode",
       "prompt": "our dirty areas table shows status values 1, 9 and 40 all over the place after a big load. which ones do I actually need to worry about?",
       "expected_output": "Decodes 1 (edit only), 9 (edit + feature error), 40 (feature error + subnetwork error); says validate ignores error-only rows, so the feature must be edited; Update Subnetwork afterwards for bit 32.",
@@ -62,7 +46,7 @@
       ]
     },
     {
-      "id": 5,
+      "id": 4,
       "name": "upgrade-v8-field-maps",
       "prompt": "Should we upgrade our telecom + electric UN from version 7 to 8? We're on Enterprise 12.1 and Pro 3.7, and linemen use Field Maps.",
       "expected_output": "Flags Field Maps/Native SDK don't support v8; lists upgrade prerequisites; weighs telecom benefits.",
@@ -75,7 +59,7 @@
       ]
     },
     {
-      "id": 6,
+      "id": 5,
       "name": "arcpy-structural-attachment",
       "prompt": "python script to attach a transformer to a pole in our UN with arcpy — I have both globalids. also how would I remove it later",
       "expected_output": "Uses arcpy.un.UtilityNetwork AddStructuralAttachmentAssociation and DeleteStructualAttachmentAssociation (Esri spelling); checks topology; licensing correct.",
@@ -88,7 +72,7 @@
       ]
     },
     {
-      "id": 7,
+      "id": 6,
       "name": "migrate-geometric-network-path",
       "prompt": "we have an ArcMap geometric network for water and gas, 60k features, and want to move to the utility network in Pro. we like our own field names and don't want to adopt a full Foundation. what's the route and what do we need ready first?",
       "files": [],
@@ -102,7 +86,7 @@
       ]
     },
     {
-      "id": 8,
+      "id": 7,
       "name": "foundation-schema-mapping",
       "prompt": "we're loading our electric data into the Electric Foundation. how do we map our source subtypes to asset groups and asset types, and what do we do about our coded domain values that don't match?",
       "files": [],
@@ -117,7 +101,7 @@
       ]
     },
     {
-      "id": 9,
+      "id": 8,
       "name": "migration-relationship-classes",
       "prompt": "our source geodatabase has a transformer-to-pole relationship class and some many-to-many relationship classes. what happens to them when we migrate to a UN?",
       "files": [],
@@ -130,7 +114,7 @@
       ]
     },
     {
-      "id": 10,
+      "id": 9,
       "name": "specific-apply-gas-to-water",
       "prompt": "Apply Asset Package fails when I try to add gas to our water utility network. Setup: ArcGIS Pro 3.5, ArcGIS Enterprise 11.3 with PostgreSQL. Our water UN is 'WaterUN' in feature dataset 'WaterDistribution' and already has the domain network 'Water'. I'm applying the Gas Foundation asset package with 'Domain networks to apply' = Gas. My Pro project has two maps open (Editing and Publishing). I connected to the database as 'gis_editor' (the UN owner is 'wateradmin'), my Enterprise portal login is 'jsmith' (the portal utility network owner is 'wateradmin'), and my current version is 'wateradmin.crew1'. Network topology is currently enabled because dispatch runs traces all day. What exactly is wrong, in what order do I fix it, and will applying Gas wipe out our Water configuration?",
       "files": [],
@@ -144,7 +128,7 @@
       ]
     },
     {
-      "id": 11,
+      "id": 10,
       "name": "specific-isolation-trace-crew1-outage",
       "prompt": "Write the REST request for an isolation trace on our water utility network. Service: https://gis.cityutil.example/server/rest/services/WaterUN/UtilityNetworkServer (federated with our portal). The main is a WaterLine feature with GlobalID {8F2A6C1E-4B7D-4E1A-9C55-2D0F7A1B3E90}; break it at the midpoint. Isolating valves are in the WaterDevice class and carry the network category 'Isolating'; there is a network attribute 'Operable' where 1 means operable, and I only want to stop at operable valves. Domain network is Water, tier is Pressure. Run it on the branch version 'crew1.outage' (created by user crew1; someone else may have it open for editing). I also want to know which service connections lose water. Give me a curl command and tell me what to check if it comes back with zero elements.",
       "files": [],
@@ -160,7 +144,7 @@
       ]
     },
     {
-      "id": 12,
+      "id": 11,
       "name": "specific-dirty-areas-8-and-40-survive-validate",
       "prompt": "After loading 46k features into a branch version our DirtyAreas table has: Status 1 x 41,220; Status 2 x 130; Status 9 x 312; Status 8 x 5; Status 40 x 18. Validate Network Topology over the full extent says success, but the Status 8 and Status 40 rows are still there afterwards. What does each value mean, which ones do I actually need to work on, why did validate not clear them, and what do I do next for each?",
       "files": [],
@@ -172,22 +156,6 @@
         "Says 40 also needs Update Subnetwork and that the subnetwork stays Invalid until it updates cleanly",
         "Says 9 rows are re-evaluated and become 8 if the error persists",
         "Says a successful validate job does not mean zero errors"
-      ]
-    },
-    {
-      "id": 13,
-      "name": "specific-dispatch-mcp-breaker-cb-1042",
-      "prompt": "Dispatch (12 people, none have ArcGIS Pro licences) wants to ask Claude Desktop things like 'what is downstream of breaker CB-1042?' and 'which feeders have dirty subnetworks?' on our electric utility network. We run ArcGIS Enterprise 11.5 with a federated portal (SAML SSO), the UN dataset is version 7 and branch versioned, and the service was published from Pro. Should we use Esri's MCP support, custom geoprocessing tools, or a custom MCP server over the UN REST API? Give me the recommended route, the tool list, how to authenticate, the Claude Desktop config, the safety controls (dispatch must never be able to edit), and what licensing dispatch needs.",
-      "files": [],
-      "expected_output": "Route C recommended, Esri MCP beta has no UN tools, an asset-ID lookup tool, SAML-compatible auth, read-only controls, licensing.",
-      "assertions": [
-        "States Esri's MCP in ArcGIS Enterprise (beta) has no utility network tools such as trace",
-        "Recommends the custom REST MCP server (as a design to build, not a shipped product) and says why GP tools or Esri's overlay alone are weaker",
-        "Handles the 'CB-1042' problem: an asset ID must be turned into a globalId (a find-by-asset-ID lookup), and a device start needs a terminalId",
-        "Auth suits SAML: OAuth client credentials or a pre-issued token, notes generateToken does not work for SAML-only logins, and warns about secrets on 12 machines",
-        "Read-only controls: write tools not registered by default, service account without the Advanced Editing extension, view-only sharing",
-        "Says trace and query need no Advanced Editing extension and no Pro licence",
-        "Flags what is unverified (for example ISDIRTY stored codes) instead of asserting it"
       ]
     }
   ]

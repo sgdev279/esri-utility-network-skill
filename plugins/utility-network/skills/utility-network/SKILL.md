@@ -1,12 +1,12 @@
 ---
 name: utility-network
-description: Expert reference for the Esri ArcGIS Utility Network (UN) - data model, Foundations, asset packages, migration and schema mapping, configuration, tracing, subnetworks, dirty areas and errors, versioning, publishing, licensing, dataset versions and upgrades, and every developer surface (REST UtilityNetworkServer, JavaScript SDK, Pro SDK C#, arcpy.un, Experience Builder) - plus connecting AI agents to a utility network through MCP. Use it whenever someone mentions the utility network or UN in an ArcGIS context, or uses its vocabulary without naming it - subnetwork controllers, Update Subnetwork, domain networks, tiers, dirty areas, Error Inspector, network topology, associations, Apply Asset Package, Migration Wizard, mapping source data to asset groups and types, trace configurations, isolation or upstream traces - or wants an MCP server or AI agent for utility GIS data. Not for Trace Networks, geometric networks (except migrating from one), Network Analyst, or non-Esri meanings of utility network or UN.
+description: Expert reference for the Esri ArcGIS Utility Network (UN) - data model, Foundations, asset packages, migration and schema mapping, configuration, tracing, subnetworks, dirty areas and errors, versioning, publishing, licensing, dataset versions and upgrades, and every developer surface (REST UtilityNetworkServer, JavaScript SDK, Pro SDK C#, arcpy.un, Experience Builder). Use it whenever someone mentions the utility network or UN in an ArcGIS context, or uses its vocabulary without naming it - subnetwork controllers, Update Subnetwork, domain networks, tiers, dirty areas, Error Inspector, network topology, associations, Apply Asset Package, Migration Wizard, mapping source data to asset groups and types, trace configurations, isolation or upstream traces. Not for Trace Networks, geometric networks (except migrating from one), Network Analyst, or non-Esri meanings of utility network or UN.
 ---
 
 # Esri ArcGIS Utility Network — Expert Reference
 
 A cross-referenced knowledge base for the Utility Network (UN): concepts,
-administration, every API surface, and AI-agent (MCP) integration. The
+administration and every API surface. The
 reference files hold concrete specifics — field names, tool and REST
 signatures, JSON schemas, version limits, known failure modes — so answers can
 be exact rather than generic.
@@ -14,13 +14,13 @@ be exact rather than generic.
 ## Workflow for every UN request
 
 1. **Classify the request** into one of the answer types in *Output formats*
-   below (how-to, troubleshooting, code, MCP/AI integration, concept,
+   below (how-to, troubleshooting, code, concept,
    cross-surface translation).
 2. **Pin down the environment.** These facts change the answer; use what the
    person gave, and ask only for what is missing *and* decisive:
    - deployment: **enterprise** (services, branch versioning) or
      **single-user** (file/mobile geodatabase, Pro only, no REST/JS)
-   - surface: Pro UI, arcpy, Pro SDK (C#), REST, JS, Experience Builder, MCP
+   - surface: Pro UI, arcpy, Pro SDK (C#), REST, JS, Experience Builder
    - versions: **UN dataset version** (4–8), **Pro**, **Enterprise**
      (`pro-help/09-*.md` has the matrix)
    - industry/domain network (electric, gas, water, telecom, …)
@@ -43,7 +43,6 @@ be exact rather than generic.
 | A web app | ArcGIS Maps SDK for JavaScript — `@arcgis/core/networks/*` | `js-api/*.md` |
 | A low-code web app | Experience Builder UN widgets | `experience-builder/01-*.md` |
 | An integration / backend | REST `UtilityNetworkServer` + `FeatureServer` | `rest-api/*.md` |
-| An AI agent that works with the network | MCP (see next section) | `mcp/*.md` |
 | A native/mobile app (.NET MAUI, Qt, Kotlin, Swift) | ArcGIS Maps SDK for Native Apps — **not covered here**; say so and note they don't support UN dataset v8 | — |
 
 Also distinguish:
@@ -53,40 +52,6 @@ Also distinguish:
   `arcgis.network` is Network Analyst.
 - The JS SDK has **no** network diagram support; diagrams in a web app mean
   raw `NetworkDiagramServer` REST + custom rendering.
-
-## MCP and AI agents (priority topic)
-
-Treat any request about connecting Claude, Copilot, or another AI agent to
-utility network data as an MCP question, even if "MCP" isn't said.
-
-**Four routes** — recommend one explicitly:
-
-| Route | UN capability | Use when |
-|---|---|---|
-| A. Esri **MCP in ArcGIS Enterprise** (beta overlay) | Generic: search content, describe/query layers, map images, GP job tools. **No UN-specific tools.** | Esri-supported, portal-governed access to UN layers as plain feature layers is enough |
-| B. Route A + **custom GP tasks** tagged `mcp` | Anything `arcpy.un` can do | Must stay inside Esri's overlay but needs traces/subnetwork ops |
-| C. **Custom UN MCP server** over REST | Full `UtilityNetworkServer` surface | First-class UN tools today, any MCP client, any UN-capable Enterprise — **default recommendation** |
-| D. MCP ↔ **Pro Add-in bridge** | Full C# SDK in a live Pro session | Agent must act in the user's Pro map, or on a single-user network |
-
-Key facts to carry into every MCP answer:
-- **MCP for ArcGIS Location Services** (Location Platform, announced June
-  2026) is unrelated to UN — geocoding/routing only. Say so if it comes up.
-- Esri's Enterprise overlay is **beta** (snake_case tools such as
-  `query_data`, `describe_layer`, `get_gp_task_definition`); date-stamp these
-  facts ("as of Sept 2026").
-- Route C is a design this skill describes, not a server it ships. Give the
-  tool set (`describe_network`, `list_trace_configurations`, `trace`,
-  `query_associations`, `query_subnetworks`, `dirty_area_summary`, a
-  find-by-asset-ID lookup, `network_moments`, `job_status`), the REST shapes
-  and the write gating (validate and update-subnetwork tools only behind an
-  explicit write switch **and** a per-call confirmation) from `mcp/03`.
-- Always cover: which route and why, read vs. write tiers, auth pattern,
-  licensing split (trace/query need no user type extension; validate/update
-  need Advanced Editing), and result-size handling.
-
-Details: `mcp/01` (Esri's offerings), `mcp/02` (GP-task worked example:
-outage isolation), `mcp/03` (building a UN MCP server — tool design, REST
-shapes, auth, safety rails, client config).
 
 ## Output formats
 
@@ -128,24 +93,13 @@ deliverables (a runbook, a design doc) follow the same skeleton.
 For REST trace requests, run `scripts/build_trace_request.py --check` on the
 JSON before presenting it.
 
-### 4. MCP / AI-agent integration
-```
-**Recommended route:** A/B/C/D and why (one or two sentences)
-**What works today vs. what you build:** short table
-**Tools the agent gets:** name, read/write, what question it answers
-**Setup:** install, env vars/auth, client config block
-**Safety:** write gating, confirmation, version discipline, extent limits
-**Licensing:** which users need the Advanced Editing extension
-**Status note:** beta/date caveats
-```
-
-### 5. Concept explanation
+### 4. Concept explanation
 Plain-language definition → how it behaves in the network (a small example
 from the person's domain) → how it shows up in the surface they use (Pro
 pane, REST field, JS property) → common misconception. A diagram helps for
 tiers, subnetworks, associations and trace flow.
 
-### 6. Cross-surface translation ("works in Pro, how in REST/JS/C#?")
+### 5. Cross-surface translation ("works in Pro, how in REST/JS/C#?")
 A mapping table (Pro setting → REST field → JS property → C# member) for the
 parts involved, then the code in the target surface (format 3).
 
@@ -192,13 +146,6 @@ parts involved, then the code in the target surface (format 3).
 | `experience-builder/01-utility-network-widgets.md` | Low-code trace and version widgets |
 | `github-ecosystem/01-esri-github-repos.md` | UDMS toolbox, properties extractor, other Esri repos |
 
-**MCP / AI agents**
-| File | Read when |
-|---|---|
-| `mcp/01-mcp-and-utility-network.md` | What Esri's MCP offerings do and don't cover |
-| `mcp/02-custom-gp-tool-worked-example-outage-isolation.md` | Route B worked example |
-| `mcp/03-building-a-utility-network-mcp-server.md` | Route C/D design: tool set, REST shapes, auth, safety rails, client config |
-
 ## Scripts
 
 | Script | Use for |
@@ -217,15 +164,15 @@ parts involved, then the code in the target surface (format 3).
   names and REST `associations/query` names); use
   `scripts/association_types.py` rather than recalling codes.
 - **Version-sensitive facts** (parameters added in a given release, patch
-  issues, beta MCP tools) must be stated with their version or date. Files
-  carry a *Last reviewed* date where they were re-verified (Sept 2026: MCP,
+  issues) must be stated with their version or date. Files
+  carry a *Last reviewed* date where they were re-verified (Sept 2026:
   licensing, arcpy class, compatibility/upgrade, asset packages, REST
   update/export/validate/associations, trace configuration schema).
 - **Don't invent names.** If a property, parameter or tool isn't in the
   references and you can't check it, say it needs verifying against the Esri
   docs for their version rather than guessing. When web search is available
   and the person is about to ship something, check the current Esri page.
-- **Single-user vs enterprise**: never offer REST/JS/MCP-over-REST answers for
+- **Single-user vs enterprise**: never offer REST or JS answers for
   a file or mobile geodatabase network.
 - **Safety**: when an answer involves enable/disable topology, Upgrade
   Dataset, Apply Asset Package, export with acknowledgement, or bulk

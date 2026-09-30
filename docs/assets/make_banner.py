@@ -95,12 +95,12 @@ x0 = 72 * S
 d.text((x0, 92 * S), "ESRI ARCGIS", font=font("Bold", 22), fill=ACCENT)
 d.text((x0, 124 * S), "Utility Network", font=font("Black", 76), fill=TEXT)
 d.text((x0, 222 * S), "Claude Skill", font=font("Medium", 38), fill=TEXT)
-d.text((x0, 284 * S), "Expert UN knowledge for AI agents — tracing, subnetworks,",
+d.text((x0, 284 * S), "Expert UN knowledge for Claude — tracing, subnetworks,",
        font=font("Regular", 22), fill=MUTED)
 d.text((x0, 316 * S), "dirty areas, asset packages, versions and every API surface.",
        font=font("Regular", 22), fill=MUTED)
 
-chips = ["Pro", "REST", "JavaScript", "C# SDK", "arcpy", "MCP"]
+chips = ["Pro", "REST", "JavaScript", "C# SDK", "arcpy", "Migration"]
 cx, cy = x0, 392 * S
 cf = font("Medium", 20)
 for c in chips:

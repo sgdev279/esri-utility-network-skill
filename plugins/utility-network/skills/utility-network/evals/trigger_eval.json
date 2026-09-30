@@ -12,10 +12,6 @@
     "should_trigger": true
   },
   {
-    "query": "can I get Claude to query our utility network through MCP? we're on Enterprise 11.4",
-    "should_trigger": true
-  },
-  {
     "query": "Apply Asset Package fails with 'dataset owner' error, pro 3.5, sde connection as gisadmin",
     "should_trigger": true
   },
@@ -25,10 +21,6 @@
   },
   {
     "query": "C# add-in: how do I get all features contained in a vault using the Pro SDK associations API",
-    "should_trigger": true
-  },
-  {
-    "query": "need an AI agent that tells dispatch which customers lose power if a fuse opens, data lives in our Esri electric network",
     "should_trigger": true
   },
   {
@@ -57,14 +49,6 @@
   },
   {
     "query": "design an electrical distribution network for a new housing development, load calc and transformer sizing",
-    "should_trigger": false
-  },
-  {
-    "query": "build an MCP server that exposes our Postgres customer database to Claude",
-    "should_trigger": false
-  },
-  {
-    "query": "how do I use the ArcGIS Location Platform MCP to geocode 500 addresses",
     "should_trigger": false
   },
   {

@@ -4,7 +4,7 @@
 ## Type
 - [ ] New knowledge / reference file
 - [ ] Correction or refresh of existing content
-- [ ] MCP server or script change
+- [ ] Script change
 - [ ] Repo / docs / CI
 
 ## Checklist

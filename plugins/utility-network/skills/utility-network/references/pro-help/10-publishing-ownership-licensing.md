@@ -17,8 +17,8 @@ trace back to this file.
 | REST `validateNetworkTopology`, `updateSubnetwork`, `exportSubnetwork`, named trace configuration management | Advanced Editing user type extension |
 
 There is no separate "Utility Network extension" license in Pro; older
-material that mentions one is out of date. Scoping tip: read-only web apps,
-MCP servers and dashboards that only trace or query can run under users
+material that mentions one is out of date. Scoping tip: read-only web apps
+and dashboards that only trace or query can run under users
 without the extension.
 
 ## The two owners

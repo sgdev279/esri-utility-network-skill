@@ -19,7 +19,6 @@ AREAS = {
     "arcpy": "Developer SDKs and apps",
     "experience-builder": "Developer SDKs and apps",
     "github-ecosystem": "Developer SDKs and apps",
-    "mcp": "MCP / AI agents",
 }
 
 REVIEWED_RE = re.compile(r"Last\s+reviewed:\s*(\d{4}-\d{2}-\d{2})")

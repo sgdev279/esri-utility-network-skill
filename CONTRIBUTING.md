@@ -10,7 +10,7 @@ Thanks for helping the skill get better. The goal is simple: when someone asks a
 | Spotted something wrong or outdated | [Open a correction](https://github.com/sgdev279/esri-utility-network-skill/issues/new?template=correction.yml) with a source link |
 | Time to write it up yourself | Add or edit a reference file and open a PR (below) |
 | Raw material (notes, exported docs, meeting notes) | Drop a markdown file in [`knowledge-inbox/`](knowledge-inbox) via PR |
-| A bug in the MCP server or scripts | [Open a bug report](https://github.com/sgdev279/esri-utility-network-skill/issues/new?template=bug-report.yml) |
+| A bug in a helper script | [Open a bug report](https://github.com/sgdev279/esri-utility-network-skill/issues/new?template=bug-report.yml) |
 
 ## How knowledge flows into the skill
 
@@ -39,7 +39,6 @@ flowchart LR
 | `arcpy/` | Python in Pro |
 | `experience-builder/` | Low-code apps |
 | `github-ecosystem/` | Esri tools and repos |
-| `mcp/` | AI agents and MCP |
 
 Prefer editing an existing file. Create a new one only for a topic that would make an existing file sprawl.
 
@@ -66,7 +65,7 @@ python tools/new_reference.py --area pro-help \
 ```bash
 python tools/lint_references.py          # structure, sources, index, links
 python tools/freshness_report.py         # refresh docs/FRESHNESS.md
-python -m unittest discover -s tests     # scripts, validator, MCP server vs. mock service
+python -m unittest discover -s tests     # helper scripts and trace-request validator
 ```
 
 **5. Update `CHANGELOG.md`** under an "Unreleased" heading, then open a PR. CI runs the linter, script self-tests and the unit tests.

@@ -22,7 +22,7 @@ from datetime import date
 
 from _common import AREAS, NAME_RE, REF_DIR, SKILL_MD, reference_files
 
-LINK_RE = re.compile(r"(pro-help|rest-api|js-api|pro-sdk|arcpy|experience-builder|github-ecosystem|mcp)/\d{2}-[a-z0-9-]+\.md")
+LINK_RE = re.compile(r"(pro-help|rest-api|js-api|pro-sdk|arcpy|experience-builder|github-ecosystem)/\d{2}-[a-z0-9-]+\.md")
 
 
 def main() -> int:

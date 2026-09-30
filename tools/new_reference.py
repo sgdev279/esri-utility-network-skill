@@ -6,7 +6,7 @@ Usage:
       --read-when "Calculation/constraint rules on UN classes, rule order, performance" \
       --source https://doc.esri.com/en/arcgis-pro/latest/help/data/geodatabases/overview/an-overview-of-attribute-rules.html
 
-  --area       one of: pro-help, rest-api, js-api, pro-sdk, arcpy, experience-builder, github-ecosystem, mcp
+  --area       one of: pro-help, rest-api, js-api, pro-sdk, arcpy, experience-builder, github-ecosystem
   --title      human title (used for the H1 and the file name)
   --read-when  one line for SKILL.md's index: when Claude should open this file
   --source     Esri doc URL(s) the content is based on (repeatable)

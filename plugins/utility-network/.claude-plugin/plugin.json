@@ -1,7 +1,7 @@
 {
   "name": "utility-network",
   "version": "2.1.0",
-  "description": "Expert reference for the Esri ArcGIS Utility Network: tracing, subnetworks, dirty areas, asset packages, dataset versions, migration and schema mapping, REST/JS/C#/arcpy, and MCP guidance",
+  "description": "Expert reference for the Esri ArcGIS Utility Network: tracing, subnetworks, dirty areas, asset packages, dataset versions, migration and schema mapping, and REST/JS/C#/arcpy",
   "author": {
     "name": "Sayanta Ghosh"
   },
