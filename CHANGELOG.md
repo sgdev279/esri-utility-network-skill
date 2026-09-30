@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.0 — 2026-09-30
 Repository
 - This repository is now the skill only. The MCP server (`mcp-server/`, `scripts/un_mcp_server.py`, its mock-service tests, and the PyPI and MCP Registry release steps) has been removed and moves to its own repository.
 - All MCP content is removed from the skill: `references/mcp/*`, the MCP section and answer format in SKILL.md (answer formats are now five), the MCP evals and trigger queries, and the MCP scenario in the README and docs. The SKILL.md description no longer mentions MCP or AI-agent integration.
