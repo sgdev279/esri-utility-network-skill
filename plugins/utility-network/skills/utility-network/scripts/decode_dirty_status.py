@@ -41,8 +41,8 @@ def decode(status: int) -> dict:
     has_error = any(status & b for b in ERROR_BITS)
     if has_error and not has_edit:
         kind = "error only"
-        action = ("Validate will IGNORE this row. Find the cause (Error Inspector: Network Source ID, "
-                  "Feature GUID, error code), fix it by EDITING the feature, rule or subnetwork "
+        action = ("Validate will IGNORE this row. Find the cause (Error Inspector for the feature; the Dirty Areas "
+                  "attribute table for the error code and Status), fix it by EDITING the feature, rule or subnetwork "
                   "definition, save, then validate.")
         if status & 32:
             action += (" Subnetwork error: after the fix, run Update Subnetwork; the subnetwork "

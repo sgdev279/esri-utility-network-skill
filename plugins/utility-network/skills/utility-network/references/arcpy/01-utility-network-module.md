@@ -1,6 +1,8 @@
 # Utility Network — arcpy / Python Scripting (Deep Reference)
 *Source: doc.esri.com/en/arcgis-pro/latest/arcpy/ (get-started + arcpy.un module docs,
-UtilityNetwork class reference). Last reviewed: 2026-09-28 (Pro 3.7 docs).*
+UtilityNetwork class reference)*
+
+> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 **Audience note**: this is for **Python scripting inside ArcGIS Pro**
 (standalone scripts, the Python window, model builder script tools) — a
@@ -19,12 +21,23 @@ is listed as **both**:
    documented throughout the Pro Help reference files in this skill:
    `Create Utility Network`, `Add Rule`, `Set Terminal Configuration`,
    `Set Network Category`, `Add Network Attribute`, `Import/Export
-   Associations`, `Set Association Role`, `Set a Subnetwork Controller`,
-   `Trace`, `Validate Network Topology`, and all the network-diagram
-   `arcpy.nd.*` rule tools — **all of these are called via `arcpy.un.*`
-   (or `arcpy.nd.*` for diagram tools) in a Python script**, exactly as
-   shown in the Python code samples already embedded in
-   `pro-help/02-*.md` through `pro-help/07-*.md`.
+   Associations`, `Import/Export Subnetwork Controllers`, `Set Association
+   Role`, `Update Subnetwork`, `Export Subnetwork`, `Trace`,
+   `Validate Network Topology`, and so on — **all of these are called via
+   `arcpy.un.<ToolName>` in a Python script** (tool name with spaces removed,
+   e.g. `arcpy.un.ValidateNetworkTopology`), exactly as shown in the Python code
+   samples already embedded in `pro-help/02-*.md` through `pro-help/07-*.md`.
+   The network-diagram tools are a **separate Network Diagram toolbox**
+   (`arcpy.nd.*`), not part of `arcpy.un`.
+
+   **There is no GP tool named "Set a Subnetwork Controller" / "Set Subnetwork
+   Controller".** "Set a subnetwork controller" is a Pro help topic (done in the
+   UI's Modify Subnetwork Controller pane). In Python you set or remove a
+   controller with the `arcpy.un.UtilityNetwork` class methods
+   `EnableSubnetworkController(...)` / `DisableSubnetworkController(...)`
+   (below), or bulk-load them with the `Import Subnetwork Controllers` GP tool
+   (`arcpy.un.ImportSubnetworkControllers`). `Export Subnetwork Controllers`
+   (`arcpy.un.ExportSubnetworkControllers`) is the matching export.
 2. A **module with its own `UtilityNetwork` class** — a lower-level,
    non-GP-tool API for **managing subnetwork controllers and associations
    programmatically** without going through the higher-level GP tool
@@ -35,8 +48,9 @@ is listed as **both**:
 **ArcGIS Pro Standard or Advanced** license. For an **enterprise deployment**,
 creating, publishing, or editing also needs the portal account to hold the
 **ArcGIS Advanced Editing user type extension**; query and trace do not.
-There is no separate "Utility Network extension" license in Pro — older
-material that says so is out of date.
+From Enterprise 11.2 the old separate Utility Network, Trace Network and Parcel
+Fabric extensions are consolidated into Advanced Editing; older material that
+names a separate "Utility Network extension" (through 11.1) is out of date.
 
 ## The `arcpy.un.UtilityNetwork` class (lower-level, non-GP API)
 
@@ -69,10 +83,16 @@ Details on the most-used ones:
   `6` = Junction-Edge To Connectivity. Requires that supporting network
   rules already exist for the asset types involved (same rule-first
   requirement as everywhere else — `pro-help/03-*.md`).
-- **`HasValidNetworkTopology()`** — checks whether the network's topology is
-  currently enabled/valid. Esri's own guidance: check this **before**
-  creating associations or modifying subnetwork controllers, since both
-  operations assume valid topology.
+- **`HasValidNetworkTopology()`** — returns `True` when the network's topology
+  is enabled. (This method exists on the **arcpy** class only; the Pro SDK C#
+  `UtilityNetwork` class has no member of that name — use `GetState()` there.)
+  Whether topology must be enabled before creating associations or modifying
+  subnetwork controllers: Verify against the Esri docs for your version.
+- **`EnableSubnetworkController(...)`** — makes a device/junction terminal a
+  subnetwork controller and returns the OBJECTID of the new row in the
+  Subnetworks table; run `arcpy.un.UpdateSubnetwork` afterwards to update
+  subnetwork names on the member features. Run it inside an edit session on the
+  network.
 
 **Note on association-type encodings**: these arcpy codes are the **same
 integers** stored in the associations table's `ASSOCIATIONTYPE` field and
@@ -92,7 +112,7 @@ configuration" scripting need:
 ```python
 import arcpy
 d = arcpy.Describe(utilityNetworkPath)
-print(d.proVersion, d.schemaGeneration)          # dataset version (e.g. 7)
+print(d.proVersion, d.schemaGeneration)          # schemaGeneration = UN dataset version (e.g. 8)
 for dn in d.domainNetworks:
     print(dn.domainNetworkName, dn.isStructureNetwork, dn.tierDefinition,
           dn.subnetworkControllerType, dn.subnetworkTableName)
@@ -104,15 +124,20 @@ for tc in d.terminalConfigurations:
     print(tc.terminalConfigurationName, tc.traversabilityModel,
           [(t.terminalName, t.isUpstreamTerminal) for t in tc.terminals])
 ```
-Property names verified against the Pro "Utility Network properties" arcpy
-page (Sept 2026). Other top-level properties: `associationSource`,
-`createDirtyAreaForAnyAttributeUpdate`, `minimalDirtyAreaSize`,
-`serviceTerritoryFeatureClassName`, `systemJunctionSource`. Tier details are
-not a separate Describe object on that page; read tiers from REST
-`queryDataElements` or the Pro tier properties if you need rank and
-subnetwork definition. If a property is missing on an older Pro release, run
-`dir()` on the object rather than guessing. The same data is available
-without arcpy from REST `FeatureServer/queryDataElements`.
+Property names verified against the Pro 3.7 arcpy "Utility Network properties",
+"Domain Network properties", "Terminal Configuration properties", "Network
+attribute properties" and "Tier properties" pages (Oct 2026). Other top-level
+properties: `associationSource`, `createDirtyAreaForAnyAttributeUpdate`,
+`minimalDirtyAreaSize`, `serviceTerritoryFeatureClassName`,
+`systemJunctionSource`, `systemJunctionObjectSource`, `creationTime`.
+**Tiers are available from the domain network object** (traditional domain
+networks only): `dn.tiers` (each tier exposes `name`, `rank`, `tierID`,
+`tierGroupName`, `tierTopology`, `subnetworkFieldName`,
+`supportDisjointSubnetwork`, `validSubnetworkControllers`,
+`updateSubnetworkTraceConfiguration`, ...) and `dn.tierGroups` (hierarchical tier
+definitions only). If a property is missing on an older Pro release, run `dir()`
+on the object rather than guessing. The same data is available without arcpy
+from REST `FeatureServer/queryDataElements`.
 This `Describe`-based introspection is the natural starting point for any
 "write a script that documents/audits our utility network's configuration"
 request — pair it with the field-level detail already captured in the
@@ -139,3 +164,21 @@ request — pair it with the field-level detail already captured in the
    REST appendix, `rest-api/05-*.md`) that **rules must already exist** for
    the relevant asset type pairs — this is true across every API surface,
    not just REST.
+
+## Sources
+
+- https://pro.arcgis.com/en/pro-app/3.6/arcpy/utility-network/utilitynetwork.htm (arcpy.un.UtilityNetwork class: methods and association_type codes)
+- https://pro.arcgis.com/en/pro-app/tool-reference/utility-networks/flisting.htm (Utility Network toolbox tool list)
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/set-a-subnetwork-controller.html ("Set a subnetwork controller" help topic; uses the `EnableSubnetworkController` method)
+- https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/import-subnetwork-controllers.htm
+- https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/export-subnetwork-controllers.htm
+- https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/set-network-category.htm
+- https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/trace.htm
+- https://pro.arcgis.com/en/pro-app/3.6/arcpy/functions/utility-network-properties.htm
+- https://pro.arcgis.com/en/pro-app/3.6/arcpy/functions/domain-networks.htm
+- https://pro.arcgis.com/en/pro-app/3.6/arcpy/functions/tiers.htm
+- https://pro.arcgis.com/en/pro-app/3.6/arcpy/functions/terminal-configurations.htm
+- https://pro.arcgis.com/en/pro-app/3.6/arcpy/functions/network-attributes-utility-network.htm
+- https://pro.arcgis.com/en/pro-app/3.6/arcpy/functions/categories.htm
+- https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/import-associations.htm
+- https://pro.arcgis.com/en/pro-app/tool-reference/network-diagram/an-overview-of-the-network-diagram-toolbox.htm (separate Network Diagram toolbox)

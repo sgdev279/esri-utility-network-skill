@@ -82,12 +82,12 @@ class TraceValidator(unittest.TestCase):
         self.assertEqual(problems, [])
         self.assertTrue(any("is a number" in w for w in warnings))
 
-    def test_session_id_alone_triggers_the_read_only_hint(self):
+    def test_session_id_warns_about_exclusive_lock(self):
         req = json.loads((EXAMPLES / "request.json").read_text())
         req["sessionId"] = "{3F2504E0-4F89-41D3-9A0C-0305E82C3301}"
         problems, warnings = trace_mod.analyze(req)
         self.assertEqual(problems, [])
-        self.assertTrue(any("only needed when THIS client holds" in w for w in warnings))
+        self.assertTrue(any("must match the exclusive edit session" in w for w in warnings))
 
     def test_edge_start_without_percent_along_is_a_problem(self):
         req = json.loads((EXAMPLES / "request.json").read_text())

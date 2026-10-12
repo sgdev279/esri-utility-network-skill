@@ -7,12 +7,17 @@ Encodings:
   csv    text used by Import/Export Associations CSV files
   rest   camelCase names used by UtilityNetworkServer associations/query
   gp     keyword for arcpy.un.ImportAssociations association_type
+         (that tool also accepts ALL = all association types; no integer code)
 
 Usage:
   python association_types.py 5
   python association_types.py "Junction Edge Midspan Connectivity"
   python association_types.py junctionMidspanConnectivity
   python association_types.py --table
+
+Source for the gp keywords:
+  https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/import-associations.htm
+Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 """
 import sys
 
@@ -28,8 +33,9 @@ TYPES = [
     {"code": 6, "csv": "Junction Edge To Connectivity", "rest": "junctionEdgeToConnectivity",
      "gp": "JUNCTION_EDGE_TO_CONNECTIVITY"},
 ]
-NOTE = ("gp keywords follow Esri's naming pattern (JUNCTION_JUNCTION_CONNECTIVITY is documented); "
-        "confirm the others in the Import Associations tool reference for your Pro version.")
+NOTE = ("gp keywords are the documented arcpy.un.ImportAssociations(in_utility_network, association_type, csv_file) "
+        "values (verified against the Pro 3.6 tool reference; confirm for 3.7); the tool also accepts ALL (every association type), "
+        "which has no integer code and is not a lookup target here.")
 
 
 def lookup(value: str) -> dict:

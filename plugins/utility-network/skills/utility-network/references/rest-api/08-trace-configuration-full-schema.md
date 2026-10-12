@@ -1,6 +1,8 @@
 # Utility Network — REST `traceConfiguration`: Full Schema (Deep Reference)
-*Source: ArcGIS REST API "Trace (Utility Network Server)" reference.
-Last reviewed: 2026-09-28. Complements `01-utility-network-server-and-trace.md`,
+> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+
+*Source: ArcGIS REST API "Trace (Utility Network Server)" reference (URLs in the
+Sources list at the bottom). Complements `01-utility-network-server-and-trace.md`,
 which covers the top-level trace request and the boolean flags.*
 
 Use this when hand-writing or debugging a `traceConfiguration` with
@@ -16,9 +18,18 @@ Every `operator` field accepts:
 `includesAny`, `doesNotIncludeAny`.
 
 The `includes*` operators are bitwise — use them with bit-packed network
-attributes such as phases (e.g. "includesAny" of phase bits).
+attributes such as phases (e.g. "includesAny" of phase bits). (The Trace page
+lists the operators but does not itself explain the bitwise semantics —
+**verify against the Esri docs for your version**.)
 
 `functionType` accepts: `add`, `subtract`, `average`, `count`, `min`, `max`.
+
+Condition `type` accepts `networkAttribute` or `category`; scopes
+(`traversabilityScope`, `filterScope`) accept `junctions`, `edges`,
+`junctionsAndEdges` (default `junctionsAndEdges`); `propagatorFunctionType`
+accepts `bitwiseAnd`, `min`, `max`. Trace-level enums (`traceType`,
+`traceLocationType`, `resultTypes.type`) are in
+`01-utility-network-server-and-trace.md`.
 
 ## Traversability — where the trace stops
 
@@ -35,12 +46,19 @@ attributes such as phases (e.g. "includesAny" of phase bits).
 "traversabilityScope": "junctionsAndEdges"
 ```
 - `type`: `networkAttribute` (compare an attribute) or `category` (feature
-  is/isn't in a network category; `value` is then the category name).
+  is/isn't in a network category). Esri says that to filter on a feature's
+  category you "ensure the `name` and `type` are set as `Category`" with
+  `isSpecificValue` true and the category in `value` — confirm the exact
+  casing of `type` against a trace configuration saved from Pro.
 - `isSpecificValue`: `true` compares to `value`; `false` compares to
   **another network attribute** named in `value`.
-- `combineUsingOr`: how this condition joins the **next** one in the list.
-- `useLocalValues` (function barriers): evaluate per starting point rather
-  than cumulatively from the trace origin.
+- `combineUsingOr`: appears on `conditionBarriers`, `filterBarriers`,
+  `functions` conditions and `outputConditions`; the Trace page does not define
+  it and links to a general page on multiple conditional expressions
+  (**verify against the Esri docs for your version** how `true`/`false` joins
+  adjacent conditions).
+- `useLocalValues` (function barriers): not defined on the Trace page —
+  **verify against the Esri docs for your version**.
 - `traversabilityScope`: `junctions` | `edges` | `junctionsAndEdges`.
 
 ## Filters — isolation/"find the nearest" style traces
@@ -56,10 +74,13 @@ attributes such as phases (e.g. "includesAny" of phase bits).
 ],
 "filterScope": "junctionsAndEdges"
 ```
-Filter barriers are evaluated **after** traversability: the trace still
-explores past them, but they limit what counts. In an isolation trace the
-filter barrier (e.g. "Isolating" category + operable) defines the isolating
-devices.
+`filterBarriers` have no `type` property (just `name`, `operator`, `value`,
+`combineUsingOr`, `isSpecificValue`), and `value` is a numeric string. Per
+Pro's trace documentation (not restated on the REST page), filter barriers
+act after traversability: the trace still explores past them, but they limit
+what counts. In an isolation trace the filter barrier (e.g. "Isolating"
+category + operable) defines the isolating devices — **verify against the Esri
+docs for your version**.
 
 ## Functions — aggregate values along the result
 
@@ -73,8 +94,10 @@ devices.
         "combineUsingOr": false, "isSpecificValue": true } ] }
 ]
 ```
-Results come back in `globalFunctionResults` (REST) / `FunctionResult`
-(JS, `js-api/04-*.md`).
+`summaryAttributeName` and `functionName` are not defined on the Trace page
+(its telecom example sets `functionName` to "Fiber length (meters)"; the
+`supportsFunctionName` capability flag exists). Results come back in
+`globalFunctionResults` (REST) / `FunctionResult` (JS, `js-api/04-*.md`).
 
 ## Output — what gets returned
 
@@ -103,7 +126,8 @@ changes where the trace goes, only what's reported.
     "propagatedAttributeName": "" }
 ]
 ```
-`propagatorFunctionType`: `bitwiseAnd` | `min` | `max`. The classic use is
+`propagatorFunctionType`: `bitwiseAnd` | `min` | `max`; `value` is a numeric
+string; `substitutionAttributeName` is not defined on the Trace page. The classic use is
 electric phasing: `bitwiseAnd` on a phase bitmask so a single-phase tap
 stops the trace for the phases it doesn't carry. Request
 `includePropagatedValues: true` in `resultTypes` to get the values back.
@@ -119,7 +143,25 @@ stops the trace for the phases it doesn't carry. Request
 },
 "shortestPathNetworkAttributeName": "Shape length"
 ```
-`shortestPathNetworkAttributeName` is required for `traceType=shortestPath`.
+`shortestPathNetworkAttributeName` names the cost attribute for `shortestPath`
+and `path` traces; the Trace Network Server reference states it is required
+for `shortestPath` (the Utility Network Trace page states no requirement —
+supply it anyway). `shortestPath` is deprecated at 12.1 in favour of `path`.
+
+## Newer / specialised properties (12.1 and path, circuit and loops traces)
+
+| Property | Notes |
+|---|---|
+| `filterBitsetNetworkAttributeName` | upstream/downstream traces: results include any bit set on the starting points for this attribute; loops traces: return only loops where the same bit is set all the way around |
+| `inferConnectivity` (boolean, default `false`) | **path traces only** |
+| `circuitName` | **circuit traces only** |
+| `numPaths` (12.1, default 1) | **path traces only**; paths returned = start locations x stop locations x `numPaths` |
+| `maxHops` (12.1, default 100) | **path and circuit traces only**; edges and junction-junction connectivity count 1 hop each, terminal devices count 2 |
+| `useDigitizedDirection` (11.3, UN dataset v7+) | when true, `domainNetworkName`, `tierName` and `targetTierName` are ignored |
+| `synthesizeGeometries` (11.3) | applies only with the `aggregatedGeometry` result type (see the caveat in `01-*.md`) |
+
+`traceType` values `path` and `circuit` and the stopping-point location type
+(`stoppingPoint`) are listed in `01-utility-network-server-and-trace.md`.
 
 ## Checklist when a hand-written configuration misbehaves
 
@@ -127,9 +169,16 @@ stops the trace for the phases it doesn't carry. Request
    case-sensitive and must match `queryDataElements` output.
 2. **Values are strings** in REST JSON, even for numbers.
 3. **Coded values**: compare to the stored code, not the description.
-4. **Subnetwork traces** also need `domainNetworkName`, `tierName` and
-   usually `subnetworkName` in the configuration.
+4. **Subnetwork traces** require `domainNetworkName` and `tierName` in the
+   configuration (and `subnetworkName` when tracing a specific subnetwork
+   without starting points).
 5. **Barriers on starting points**: `ignoreBarriersAtStartingPoints` decides
    whether a barrier at a start location stops the trace immediately.
 6. **Prefer a named trace configuration** (`traceConfigurationGlobalId`)
    when the admin already built one in Pro — it avoids all of the above.
+
+## Sources
+- https://developers.arcgis.com/rest/services-reference/enterprise/trace-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/trace-trace-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/create-traceconfiguration-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/query-traceconfiguration-utility-network-server/

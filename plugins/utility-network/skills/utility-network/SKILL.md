@@ -141,7 +141,7 @@ parts involved, then the code in the target surface (format 3).
 | `js-api/04-trace-results-and-widgets.md` | `TraceResult`, `UtilityNetworkTrace` widget |
 | `js-api/05-editing-associations-validation.md` | Association edits, `validateTopology`, validate widget |
 | `js-api/06-functional-api-web-components-calcite.md` | Functional `trace()`, web components, Calcite, arcgis-rest-js gap |
-| `pro-sdk/01-csharp-sdk-utility-network-api.md` | Pro Add-in C#: `UtilityNetwork`, `Job<T>`, associations, tracing |
+| `pro-sdk/01-csharp-sdk-utility-network-api.md` | Pro Add-in C#: `UtilityNetwork`, `ValidateNetworkTopology`, subnetworks, associations, tracing |
 | `arcpy/01-utility-network-module.md` | `arcpy.un` tools, `UtilityNetwork` class (all methods), `Describe` properties |
 | `experience-builder/01-utility-network-widgets.md` | Low-code trace and version widgets |
 | `github-ecosystem/01-esri-github-repos.md` | UDMS toolbox, properties extractor, other Esri repos |

@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.3.0 — 2026-10-12
+Accuracy release. Every correction below was checked against current Esri documentation (Pro 3.7, Enterprise 12.1, UN dataset v8, JS SDK 5.1); items that could not be verified are marked "Verify against the Esri docs for your version".
+
+Corrected
+- `pro-sdk/01`: the `Job<T>` / `UtilityNetworkValidationJob` section described the Maps SDK, not the Pro SDK. Replaced with the real `ValidateNetworkTopology` / `ValidationResult` / `ServiceSynchronizationType` behaviour; `HasValidNetworkTopology` is arcpy-only (C# uses `GetState()`); subnetwork update and export live on `Subnetwork`, not the manager.
+- `rest-api/07`: circuits and unit identifiers arrived at Enterprise 12.1 (not 11.5); create uses `startLocation`/`stopLocation` with `firstUnit`/`lastUnit`; `returnConsumingCircuits` does not exist (use `circuitHierarchy`).
+- `rest-api/02`/`06`: the validate response property is `discoveredSubnetworks`; required parameters added for associations, locations, controllers, enable/disable topology and synthesizeAssociationGeometries; export acknowledgement semantics fixed.
+- `rest-api/01`/`08`: trace types `path` and `circuit`, `stoppingPoint` locations, `paths`/`circuits`/`relatedRecords` result types, 12.1 configuration keys; `shortestPath` deprecated.
+- `js-api/*`: `generateAddAssociations` (plural) replaces an invented name; the three imperative UN widgets are deprecated since 5.0 and the web components are documented; `submitTraceJob` exists; wrong npm package name fixed.
+- `arcpy/01`: "Set a Subnetwork Controller" is not a tool; use `EnableSubnetworkController` or the Import/Export Subnetwork Controllers tools; Advanced Editing history.
+- `pro-help/03`, `04`, `05`, `10`: Apportionable is Double only; error-ID tables rewritten from Esri's; Num Paths / Max Hops / Infer Connectivity scoped to the right trace types; Enable/Disable topology needs both owners; Update Subnetwork needs neither; publishing prerequisites corrected.
+
+Tooling
+- `build_trace_request.py` accepts `path`, `circuit`, `stoppingPoint` and the 12.1 configuration keys, warns on deprecated `shortestPath`, and states the `sessionId` lock rule as Esri words it.
+- Nine new evals (ids 12 to 20) cover the corrected facts. 20 reference files now carry a `Last reviewed` date and a Sources list; 9 remain undated and are scheduled for review.
+
 ## 2.2.0 — 2026-09-30
 Repository
 - This repository is now the skill only. The MCP server (`mcp-server/`, `scripts/un_mcp_server.py`, its mock-service tests, and the PyPI and MCP Registry release steps) has been removed and moves to its own repository.

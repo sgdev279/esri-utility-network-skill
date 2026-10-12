@@ -1,6 +1,8 @@
 # Utility Network — Creation, Configuration, Attributes, Categories & Rules (Deep Reference)
 *Source: ArcGIS Pro Help + Tool Reference, "Utility Network" book*
 
+> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+
 ## Create a utility network
 
 **`Create Utility Network`** geoprocessing tool creates the utility network
@@ -11,12 +13,22 @@ alongside it, since the structure network is shared infrastructure).
 - An existing **feature dataset** to hold the network.
 - An existing **m- and z-enabled polygon feature class** to serve as the
   **service territory** feature class — its extent defines the network's spatial
-  extent. Must live in the same input feature dataset.
-- For enterprise deployments: the utility network **version** created is
-  determined by the ArcGIS Pro + ArcGIS Enterprise version pairing at creation
-  time. ArcGIS Server must be federated with Portal for ArcGIS.
-- The active portal account (enterprise) is recorded as the **portal utility
-  network owner** in network properties.
+  extent. Must live in the same input feature dataset (and use the dataset's
+  spatial reference).
+- For enterprise deployments: the **Version** parameter offers Compatible
+  (default), Current, 7, 6 and 5. Compatible creates the latest version
+  compatible with the current Pro and Enterprise releases (single-user: follows
+  Pro; enterprise: follows the federated ArcGIS Enterprise release). ArcGIS
+  Server must be federated with Portal for ArcGIS.
+- Enterprise geodatabase: the connection must be a database-authenticated user.
+  The owner cannot be an operating-system-authenticated user, a database
+  administrator, or the geodatabase administrator account. Minimum geodatabase
+  version is 10.8.1.2.6 (UN version 6 or earlier) or 11.2.0.3.2 (UN version 7
+  or later).
+- Enterprise: sign in to an active portal account with publishing privileges
+  (the default Publisher role has them) that is licensed with the **ArcGIS
+  Advanced Editing** user type extension. The account is recorded as the
+  **portal utility network owner** in network properties.
 
 **Supported geodatabases:** enterprise, file, or mobile geodatabase. For
 enterprise geodatabases, the underlying DB platform must meet the minimum
@@ -72,11 +84,17 @@ gas/water). Used for two advanced mechanisms:
 ### Data types and their supported options
 | Attribute Type | In Line | Apportionable | Nullable | Substitution |
 |---|---|---|---|---|
-| Short | ✅ | ✅ | ✅ | — |
-| Long | ✅ | ✅ | ✅ | ✅ (out-of-line only) |
+| Short | ✅ (needs domain) | — | ✅ | — |
+| Long | ✅ (needs domain) | — | ✅ | ✅ (only when In Line is off) |
 | Double | — | ✅ | ✅ | — |
 | Date | — | — | ✅ | — |
 | Big integer *(UN version 7+ only)* | — | — | ✅ | — |
+
+**Apportionable is Double-only.** Esri: "Only Double attributes can be set as
+apportionable." It splits the value across the edge elements of one line
+feature by each edge's percentage along the original feature (junction classes
+may carry the attribute, but only line features are apportioned). Do not offer
+Short or Long as apportionable.
 
 - **In Line** — persists the attribute's value packed directly into the network
   topology's internal bitset representation (fast to read during a trace) rather
@@ -85,13 +103,20 @@ gas/water). Used for two advanced mechanisms:
   ```
   bit_size = ceiling(log2(max_domain_coded_value + 1))
   ```
-  Nullable In-Line attributes require **one additional bit**.
+  Nullable In-Line attributes require **one additional bit**. The domain must
+  be a coded value domain with sequential codes starting at 0, the same domain
+  must be set on the field, and field values must be positive. The topology has
+  64 bits for In Line attributes in total; user-defined In Line attributes get
+  25 bits (datasets created in Pro 3.0+; 21 bits for 2.9, 20 bits for 2.8 and
+  earlier).
 - **Substitution** — only settable **True** for **Long, out-of-line** network
   attributes. Lets a feature dynamically remap propagated values as a trace
   passes through it (see "Attribute substitution" below) instead of physically
-  editing every downstream feature's attribute.
-- You can only assign an attribute to a field with a **compatible, matching
-  nullability** (non-nullable attribute → non-nullable field only).
+  editing every downstream feature's attribute. The `Network Attribute to
+  Substitute` must be an in-line integer attribute of 8 bits or fewer.
+- Esri: "You can only assign network attributes that do not allow nulls to
+  fields that are not nullable"; the field data type must also match, and an
+  attribute maps to one field per class.
 - One network attribute can be assigned across **multiple feature
   classes/tables**.
 
@@ -123,7 +148,7 @@ for na in d.networkAttributes:
     print(f"Usage Type: {na.usageType}")
     print(f"isEmbedded: {na.isEmbedded}")        # roughly corresponds to "In Line"
     print(f"isApportionable: {na.isApportionable}")
-    print(f"isOverridable: {na.isOverridable}")
+    print(f"isOverridable: {na.isOverridable}")   # Esri: not used in the current release; ignored
     print(f"isSubstitution: {na.isSubstitution}")
     print(f"Domain name: {na.domainName}")
 ```
@@ -210,3 +235,12 @@ a missing `Add Rule` entry for that specific asset-type-to-asset-type pairing,
 or (b) a `From Terminal`/`To Terminal` mismatch on a terminal-bearing device.
 Both are configuration-time, topology-disabled operations — they cannot be
 fixed by editing feature data alone.
+
+## Sources
+
+- https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/create-utility-network.htm
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/create-a-utility-network.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/network-attributes.html
+- https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/add-network-attribute.htm
+- https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/add-rule.htm
+- https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/set-network-category.htm

@@ -68,7 +68,7 @@
         "Uses arcpy.un.UtilityNetwork(...).AddStructuralAttachmentAssociation with structure and attachment tables and globalIds",
         "Uses DeleteStructualAttachmentAssociation with Esri's spelling (or explicitly warns about it)",
         "Mentions a structural attachment rule must exist for the asset types",
-        "Does not claim a separate 'Utility Network extension' license is required"
+        "Does not claim a separate 'Utility Network extension' license is required on current releases (Advanced Editing covers it from Enterprise 11.2)"
       ]
     },
     {
@@ -156,6 +156,113 @@
         "Says 40 also needs Update Subnetwork and that the subnetwork stays Invalid until it updates cleanly",
         "Says 9 rows are re-evaluated and become 8 if the error persists",
         "Says a successful validate job does not mean zero errors"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "pro-sdk-validate-no-job",
+      "prompt": "Pro add-in C#: I want to validate topology for the current map extent and know if the network still has dirty areas. Do I use Job<T> and HasValidNetworkTopology?",
+      "files": [],
+      "expected_output": "Uses ValidateNetworkTopology returning ValidationResult on the MCT; GetState for dirty areas; no Job<T>.",
+      "assertions": [
+        "Uses utilityNetwork.ValidateNetworkTopology(...) wrapped in QueuedTask.Run, returning a ValidationResult",
+        "Says Job<T> / UtilityNetworkValidationJob is not part of the Pro SDK UtilityNetwork API (it belongs to the Maps SDK for .NET)",
+        "Uses GetState() (UtilityNetworkState: HasDirtyAreas, IsNetworkTopologyEnabled) instead of HasValidNetworkTopology, which is arcpy-only",
+        "Notes ValidateNetworkTopology cannot run inside an edit operation (use ValidateNetworkTopologyInEditOperation in an add-in)"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "rest-validate-discovered",
+      "prompt": "After calling validateNetworkTopology async from REST, which property lists the subnetworks it found, and what is in each item?",
+      "files": [],
+      "expected_output": "discoveredSubnetworks with domain, tier, subnetwork per item.",
+      "assertions": [
+        "Names the property discoveredSubnetworks (not 'discovered')",
+        "Says each entry has domain, tier and subnetwork",
+        "Notes returnEdits is ignored when async=true"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "js-add-association-name",
+      "prompt": "In the JS SDK, how do I add a connectivity association between two junctions and save it?",
+      "files": [],
+      "expected_output": "Uses generateAddAssociations (plural, array) then applyEdits.",
+      "assertions": [
+        "Uses utilityNetwork.generateAddAssociations with an array of Association objects (plural), not generateAddAssociation",
+        "Applies the returned ServiceEdits via applyEdits on the associations table or feature service",
+        "Does not recommend the deprecated UtilityNetworkTrace widget classes for new 5.x apps"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "telecom-circuit-rest",
+      "prompt": "From REST, how do I create a telecom circuit and then list the circuits that consume it? What release is needed?",
+      "files": [],
+      "expected_output": "Circuits and unit identifiers arrived at Enterprise 12.1; create takes startLocation/stopLocation; query uses circuitHierarchy.",
+      "assertions": [
+        "States circuits and unit identifiers need Enterprise 12.1 (not 11.5)",
+        "Uses startLocation/stopLocation with firstUnit/lastUnit, not startPoint/numUnits",
+        "Uses circuitHierarchy (consumers/providers) to find consuming circuits; does not invent returnConsumingCircuits"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "path-vs-shortest-path",
+      "prompt": "Which trace should I use to find two alternative routes between two points in a fiber and a water network?",
+      "files": [],
+      "expected_output": "Path trace (12.1+) with Num Paths; shortest path deprecated; Infer Connectivity telecom-only.",
+      "assertions": [
+        "Says Shortest path is deprecated at Pro 3.7 / Enterprise 12.1 and Path replaces it",
+        "Notes Num Paths applies to Path and needs Enterprise 12.1+",
+        "Notes stopping points are required for traditional networks but optional for telecom, and Infer Connectivity is telecom-only"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "apportionable-attribute",
+      "prompt": "Can I make a Short network attribute apportionable so it splits across a partially traced line?",
+      "files": [],
+      "expected_output": "No: apportionable is Double only, and only for line features.",
+      "assertions": [
+        "States only Double attributes can be apportionable",
+        "Notes apportionment is meant for line features across edge elements"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "owner-rights-enable-topology",
+      "prompt": "Who has to connect to run Enable Network Topology on an enterprise UN, and does Update Subnetwork need the owner?",
+      "files": [],
+      "expected_output": "Both the database owner connection and the portal owner; Update Subnetwork needs neither owner.",
+      "assertions": [
+        "Says Enable Network Topology needs both the database owner connection and the portal owner sign-in",
+        "Says Update Subnetwork and Validate do not need an owner connection",
+        "Does not claim a separate Utility Network extension is needed on current releases (Advanced Editing)"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "dirty-area-error-ids",
+      "prompt": "Error Inspector shows error ID 43 on a feature and we also see 41 on a subnetwork. Which bit is that in Status, and is it the same kind of error?",
+      "files": [],
+      "expected_output": "Esri does not map error IDs to Status bits; 43 is enable/validate, 41 is update-subnetwork.",
+      "assertions": [
+        "Does not claim a fixed mapping from error ID to Status bit",
+        "Identifies 43 as an enable/validate topology error and 41 as an update-subnetwork error per Esri's tables",
+        "Suggests checking the Dirty Areas attribute table for the Status and error code"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "export-subnetwork-ack",
+      "prompt": "What does exportAcknowledgement do in exportSubnetwork, and can I run it on a named version?",
+      "files": [],
+      "expected_output": "Requires DEFAULT; if all controllers are logically deleted, exporting removes the Subnetworks rows and produces no file.",
+      "assertions": [
+        "Says exportAcknowledgement requires the DEFAULT version",
+        "Explains exporting a subnetwork whose controllers are all logically deleted physically deletes its row and creates no JSON file"
       ]
     }
   ]

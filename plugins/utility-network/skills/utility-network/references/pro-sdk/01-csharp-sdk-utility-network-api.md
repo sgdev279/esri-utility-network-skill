@@ -2,6 +2,8 @@
 *Source: Esri "ProConcepts Utility Network" (GitHub wiki + doc.esri.com SDK conceptdocs),
 Esri "Utility Network Object Model Diagram," arcpy Utility Network module docs*
 
+> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+
 **Audience note**: this is for developers extending **ArcGIS Pro itself** via a
 C# Add-in (or CoreHost app) — a different audience from REST/JS web developers.
 Use this file when the user is writing a **Pro Add-in**, not a web app.
@@ -65,17 +67,19 @@ the methods people actually reach for):
 | `GetSubnetworkManager()` → `SubnetworkManager` | Entry point for subnetwork life-cycle operations. |
 | `GetDiagramManager()` → `DiagramManager` | Entry point for network diagram operations. |
 | `GetTable(NetworkSource)` → `Table` | The underlying geodatabase table for a given network source. |
-| `GetSystemTable(SystemTableType)` → `Table` | System tables — enum includes `PointErrors`, `LineErrors`, `PolygonErrors`, `DirtyAreas`, `Subnetworks`, `Associations`. |
+| `GetSystemTable(SystemTableType)` → `Table` | System tables — enum has `PointErrors`, `LineErrors`, `PolygonErrors`, `DirtyAreas`, `Subnetworks`, `Associations`. The three `*Errors` tables are **not supported once the schema version (`UtilityNetworkDefinition.GetSchemaVersion()`) is 4 or greater** — i.e. on current v8 datasets only `DirtyAreas`, `Subnetworks` and `Associations` are available. Guard with `IsSystemTableSupported(...)`. |
 | `IsSystemTableSupported(SystemTableType)` → `bool` | Guard before calling `GetSystemTable`. |
 | `CreateElement(AssetType, Guid, Terminal)` → `Element` | Build an `Element` handle for a feature without a full row fetch. |
 | `GetAssociations(Element[, AssociationType])` → `IReadOnlyList<Association>` | Query associations for a feature, optionally filtered by type. |
 | `GetAssociationFeatures(Envelope[, AssociationType])` | Spatial query for association features. |
 | `AddAssociation(Association)` / `DeleteAssociation(Association)` | Low-level association editing (see caveats below). |
-| `GetExtent()` / `GetServiceTerritoryEnvelope()` | Spatial extent accessors. |
-| `GetServerCapabilities()` → `UtilityNetworkServerCapabilities` | What the backing service supports (relevant when the UN is service-backed). |
-| `ValidateNetworkTopology(...)` | Programmatic topology validation; `ValidationType` enum includes `Repair = 1`, `ForceRebuild = 2`. |
-| `GetSchemaVersion()` | Reports the utility network's schema/version number. |
-| `GetTerminalConfigurations()` / `GetRules()` / `GetNetworkSources()` | Schema introspection, mirrors the arcpy `Describe` properties covered in the Pro Help reference. |
+| `GetExtent()` | Envelope covering the maximum extent of the stored data (`UtilityNetworkDefinition.GetServiceTerritoryEnvelope()` returns the same extent). |
+| `GetServerCapabilities()` → `UtilityNetworkServerCapabilities` | What the backing service supports (relevant when the UN is service-backed); guard with `AreServerCapabilitiesSupported()`. |
+| `GetState()` → `UtilityNetworkState` | Synchronous snapshot of topology state: `IsNetworkTopologyEnabled`, `HasDirtyAreas`, `HasErrors`, `LastConsistentMoment`, `LastUpdateIsConnectedMoment`. Call on the MCT (`QueuedTask.Run`). |
+| `ValidateNetworkTopology(...)` → `ValidationResult` | Programmatic topology validation. Overloads: `()`, `(Geometry)`, `(Geometry, ServiceSynchronizationType)`, `(Geometry, ServiceSynchronizationType, ValidationType)` and the same three with `IEnumerable<Selection>`. `ValidationType` has `Normal`, `Repair`, `ForceRebuild`. Extension method `ValidateNetworkTopologyInEditOperation` (Add-in only) adds an undo/redo entry and refreshes the map. |
+| `GetCircuitManager()` / `GetUnitIdentifierManager()` / `TraverseAssociations(...)` | Other documented members of the class (circuits, unit identifiers, association traversal). |
+
+**Schema introspection lives on `UtilityNetworkDefinition`** (obtained via `utilityNetwork.GetDefinition()`), not on `UtilityNetwork` itself: `GetNetworkSources()`, `GetRules()`, `GetTerminalConfigurations()`, `GetSchemaVersion()` (returns a string), `GetServiceTerritoryEnvelope()`. These mirror the arcpy `Describe` properties covered in the Pro Help reference.
 
 ## `Element` class
 
@@ -122,74 +126,62 @@ public static Row FetchRowFromElement(UtilityNetwork utilityNetwork, Element ele
 
 ## Network topology
 
-- `utilityNetwork.HasValidNetworkTopology()` (or the equivalent
-  `UtilityNetworkDefinition`/`UtilityNetwork` check) — confirm topology is
-  enabled **before** attempting to create associations or modify subnetwork
-  controllers; both operations assume valid topology.
-- `ValidateNetworkTopology(...)` with `ValidationType.Repair` or
-  `ValidationType.ForceRebuild` for programmatic validation, mirroring the
-  Pro UI's Validate Network Topology command but callable from an Add-in.
+- There is **no `HasValidNetworkTopology()` member** on the Pro SDK
+  `ArcGIS.Core.Data.UtilityNetwork.UtilityNetwork` class. That name is a method
+  of the **arcpy** class `arcpy.un.UtilityNetwork` (returns `True` when topology
+  is enabled) — see `arcpy/01-utility-network-module.md`. Don't carry it over
+  into C#.
+- In C#, read topology state with **`utilityNetwork.GetState()`** (call on the
+  MCT inside `QueuedTask.Run`), which returns a `UtilityNetworkState` with
+  `IsNetworkTopologyEnabled`, `HasDirtyAreas`, `HasErrors`,
+  `LastConsistentMoment` and `LastUpdateIsConnectedMoment`.
+- Whether topology must be enabled/valid before creating associations or
+  modifying subnetwork controllers: Verify against the Esri docs for your
+  version.
+- `ValidateNetworkTopology(...)` runs validation and returns a
+  **`ValidationResult`** (`HasErrors`, `IsFullUpdate`, `UpdateLocalTime`,
+  `IsDiscoveredSubnetworksSupported`, `GetDiscoveredSubnetworks()`). Pass a
+  `ValidationType` of `Normal`, `Repair` (rebuild the dirty-area extents; use
+  when Normal fails) or `ForceRebuild` (ignore dirty areas and rebuild the whole
+  given extent; use when Repair fails).
+- `ValidateNetworkTopology` manages its own transaction, so it **cannot be
+  issued inside an edit operation** and cannot be wrapped in
+  `Geodatabase.ApplyEdits`. In an Add-in use the extension method
+  `ValidateNetworkTopologyInEditOperation` instead (refreshes map views and adds
+  an entry to the Pro operation stack).
 
-## Asynchronous / long-running operations — the `Job<T>` pattern
+## Long-running operations in the Pro SDK — there is no `Job<T>`
 
-This is the C# SDK's answer to the REST `async=true`/`statusUrl` pattern
-(`rest-api/06-asynchronous-operations-job-status.md`) — a job-object model
-shared across the whole ArcGIS Maps SDK for Native Apps family (.NET, Kotlin,
-Swift, Flutter all expose the same shape under their own naming
-conventions).
+The Pro SDK (`ArcGIS.Core.Data.UtilityNetwork`) has **no `Job<T>`,
+`UtilityNetworkValidationJob`, `GeoprocessingExecutionType`, `.Start()` /
+`CancelAsync()` job lifecycle or `GetStateAsync()`**. Those belong to a
+different product: the **ArcGIS Maps SDK for .NET / Native Apps runtime**
+(`Esri.ArcGISRuntime.UtilityNetworks`), where
+`UtilityNetwork.ValidateNetworkTopology(Envelope[, GeoprocessingExecutionType])`
+returns a job and `GetStateAsync()` exists. Don't mix the two: a Pro Add-in or
+CoreHost app never calls `.Start()` on a validation.
 
-### `ValidateNetworkTopology` returns a `UtilityNetworkValidationJob`
-```csharp
-public UtilityNetworkValidationJob ValidateNetworkTopology(Envelope extent)
-public UtilityNetworkValidationJob ValidateNetworkTopology(Envelope extent, GeoprocessingExecutionType executionType)
-```
-- `UtilityNetworkValidationJob : Job<UtilityValidationResult>` — a strongly
-  typed job whose eventual `Result` is a `UtilityValidationResult`.
-- **The returned job is dormant** — it does **not** start automatically; you
-  must call `.Start()` explicitly. This is a common "why isn't anything
-  happening" gotcha in generated code that only calls `ValidateNetworkTopology(...)`
-  without a follow-up `.Start()`.
-- `GeoprocessingExecutionType`:
-  - `SynchronousExecute` (**default** when unspecified) — significantly
-    faster to start up; **preferred** for smaller validation jobs.
-  - `AsynchronousSubmit` — use for **larger jobs** where synchronous
-    execution risks timing out.
-- **Enterprise geodatabase constraint**: only a **single session** can run
-  the validate operation at a time against the DEFAULT version — matching
-  the equivalent REST-level constraint in
-  `rest-api/02-topology-and-subnetwork-management-operations.md`.
+What the Pro SDK has instead:
+- Calls are **plain synchronous methods** that must run on the MCT:
+  `await QueuedTask.Run(() => utilityNetwork.ValidateNetworkTopology(extent));`.
+- **`ServiceSynchronizationType`** (`Synchronous` | `Asynchronous`) selects which
+  flavour of the service endpoint is called when the utility network is
+  service-backed. `Synchronous` runs faster but the client may time out;
+  `Asynchronous` is slower to start but the client won't time out. It is ignored
+  for non-service-based utility networks (e.g. file or mobile geodatabases). It appears on
+  `ValidateNetworkTopology(Geometry, ServiceSynchronizationType[, ValidationType])`,
+  `Subnetwork.Update(TraceConfiguration, ServiceSynchronizationType)` and as the
+  `ServiceSynchronizationType` property on `SubnetworkExportOptions`.
+- Per Esri's ProConcepts: the extent overload is intended for small areas and
+  uses the synchronous service endpoint; `ValidateNetworkTopology()` with no
+  arguments validates the entire network using the asynchronous endpoint.
+- `GetState()` (synchronous, see above) is the lightweight "is there a problem"
+  check before deciding whether a full validation is needed.
 
-### Common `Job<T>` members (apply to any job-returning operation, not just validation)
-| Member | Purpose |
-|---|---|
-| `Status` / `StatusChanged` | Current job status and a change notification event. |
-| `Progress` / `ProgressChanged` | Percent-complete tracking, where supported. |
-| `Messages` / `MessageAdded` | Job message log, appended to as the job runs. |
-| `ServerJobId` | The underlying server-side job identifier — useful for correlating with server logs or a matching REST `statusUrl` if debugging across layers. |
-| `Start()` | **Required** to actually begin a dormant job. |
-| `Pause()` | Pause a running job. |
-| `CancelAsync()` | Cancel the job and wait for any server-side cancellation to complete — **always cancel jobs you no longer need** (e.g., on app exit) to avoid unnecessary server load. |
-| `CheckStatusAsync()` | Force an immediate status check rather than waiting for the next poll interval. |
-| `GetResultAsync()` | Retrieve the typed result once the job has succeeded. |
-
-### Related: `GetStateAsync()` for a quick, non-job network health check
-```csharp
-Task<UtilityNetworkState> GetStateAsync();
-```
-A lighter-weight call (not a `Job<T>`) that reports the network's current
-state (e.g., whether dirty areas/errors exist, whether topology is valid) —
-the natural first call before deciding whether a full validate job is even
-needed. Throws if the network doesn't support network state at all (check
-`SupportsNetworkState` first).
-
-### Practical guidance
-- Always pair a job-returning call with an explicit `.Start()` in generated
-  code — don't let this be an implicit, easy-to-miss step.
-- Default to `SynchronousExecute` unless the validation area/network is
-  known to be large; switch to `AsynchronousSubmit` specifically to avoid
-  timeouts, not as a default choice.
-- Suggest `GetStateAsync()` before a full validate when someone just wants
-  to know "is there a problem" rather than actually fix one.
+The REST-level single-session constraint on validating the DEFAULT version
+(`rest-api/02-topology-and-subnetwork-management-operations.md`) is a
+service/enterprise-geodatabase rule; whether and how it surfaces through the Pro
+SDK: Verify against the Esri docs for your version.
 
 ## Associations (C# API)
 
@@ -237,19 +229,32 @@ RowHandle transformerBankHandle = new RowHandle(transformerBankToken);
 
 ## Subnetworks (C# API)
 
-- `GetSubnetworkManager()` → `SubnetworkManager` is the entry point; exposes
-  the subnetwork life-cycle operations equivalent to the Pro UI/GP tools
-  (Update Subnetwork, Export Subnetwork) but callable from code.
+- `GetSubnetworkManager()` → `SubnetworkManager` is the entry point. Its members:
+  `GetSubnetwork`, `GetSubnetworks`, `UpdateAllSubnetworks`, `EnableController`,
+  `DisableController`, plus the Add-in extension methods
+  `EnableControllerInEditOperation` / `DisableControllerInEditOperation`.
+- A single subnetwork is a `Subnetwork` object: **`Subnetwork.Update()`**,
+  `Update(TraceConfiguration)` and `Update(TraceConfiguration, ServiceSynchronizationType)`
+  are the code equivalent of the Update Subnetwork GP tool, and
+  **`Subnetwork.Export(Uri, SubnetworkExportOptions)`** writes the export JSON
+  (the Export Subnetwork equivalent). There are no `UpdateSubnetwork` /
+  `ExportSubnetwork` methods on the manager.
+- `Subnetwork.Update()` cannot be called inside an edit transaction (save or
+  discard pending edits first); `EnableController`/`DisableController` manage
+  their own transaction and cannot be called inside another edit operation.
+  `Export` with `SetAcknowledged = true` throws if called inside
+  `Geodatabase.ApplyEdits()`.
 - **`SubnetworkExportOptions`** — the object controlling an export, with
-  (confirmed) properties:
+  (confirmed against the Pro 3.7 class reference) these properties:
   | Property | Purpose |
   |---|---|
-  | `SetAcknowledged` | Whether to mark the export as acknowledged (recall: only valid against DEFAULT version — see Pro Help admin reference). |
+  | `SetAcknowledged` | Whether to mark the export as acknowledged. When true, the DEFAULT version is required; it physically deletes the subnetwork rows marked as deleted. |
   | `IncludeDomainDescriptions` | Include human-readable domain/coded-value descriptions in export output. |
   | `IncludeGeometry` | Include feature geometry in the export. |
-  | `ServiceSynchronizationType` | e.g. `ServiceSynchronizationType.Asynchronous` — controls sync vs. async export execution against a service. |
+  | `ServiceSynchronizationType` | `Synchronous` or `Asynchronous` — controls sync vs. async export execution against a service (inherited from `ExportOptions`). |
   | `SubnetworkExportResultTypes` | A list, e.g. `{ SubnetworkExportResultType.Connectivity, SubnetworkExportResultType.Features }` — controls what's actually included in the export payload. |
   | `ResultNetworkAttributes` | Which network attributes to include (typically populated from `utilityNetworkDefinition.GetNetworkAttributes()`). |
+  | `IncludeFlowDirections` / `IncludePropagatedValues` | Include flow-direction / propagated-value results. |
   | `ResultFieldsByNetworkSourceID` | A dictionary keyed by network source ID controlling which extra fields to include per source, e.g. keyed off `networkSources.First(f => f.Name.Contains("ElectricDevice")).ID`. |
 
 ## Tracing (C# API) — the deepest part of the SDK surface
@@ -346,3 +351,25 @@ to only features carrying a specific network category.
   utility network API class relationships — useful to point advanced users
   toward when they need the complete class graph beyond what's summarized
   here.
+
+## Sources
+
+- https://github.com/esri/arcgis-pro-sdk/wiki/ProConcepts-Utility-Network
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17635.html (UtilityNetwork class members)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17662.html (ValidateNetworkTopology overloads)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17663.html (ValidateNetworkTopology())
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic24261.html (ValidateNetworkTopology(Geometry, ServiceSynchronizationType, ValidationType))
+- https://doc.esri.com/en/arcgis-pro/3.7/sdk/api-reference/topic24263.html (ValidationType enum)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17693.html (ValidationResult)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17684.html (UtilityNetworkState)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic75127.html (ServiceSynchronizationType enum)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic20025.html (SystemTableType enum)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17595.html (SubnetworkManager members)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17566.html (Subnetwork class)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic18382.html (SubnetworkExportOptions)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17679.html (UtilityNetworkDefinition.GetSchemaVersion)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17680.html (UtilityNetworkDefinition.GetServiceTerritoryEnvelope)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17677.html (UtilityNetworkDefinition.GetNetworkSources)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17678.html (UtilityNetworkDefinition.GetRules)
+- https://doc.esri.com/en/arcgis-pro/latest/sdk/api-reference/topic17681.html (UtilityNetworkDefinition.GetTerminalConfigurations)
+- https://developers.arcgis.com/net/api-reference/api/netwin/Esri.ArcGISRuntime/Esri.ArcGISRuntime.UtilityNetworks.UtilityNetwork.html (Maps SDK for .NET — where the job-based ValidateNetworkTopology/GetStateAsync live)

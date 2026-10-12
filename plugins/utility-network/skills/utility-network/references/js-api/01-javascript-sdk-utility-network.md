@@ -1,6 +1,15 @@
 # Utility Network — ArcGIS Maps SDK for JavaScript (Deep Reference)
 *Source: developers.arcgis.com/javascript/latest/ (API reference + utility-network guide pages)*
 
+> Last reviewed: 2026-10-12 (JS SDK 5.1 / Enterprise 12.1 / UN dataset v8)
+
+**Version baseline.** The current ArcGIS Maps SDK for JavaScript release is
+**5.1 (June 2026)**. In 5.0 the imperative UN widgets
+(`UtilityNetworkTrace`, `UtilityNetworkAssociations`,
+`UtilityNetworkValidateTopology`) were **deprecated** in favor of
+`arcgis-*` map components; see `04-trace-results-and-widgets.md` and
+`05-editing-associations-validation.md` for the replacement tag names.
+
 ## Critical disambiguation: THREE separate Esri "UtilityNetwork" APIs exist
 
 Esri ships utility-network object models in **three unrelated SDKs** that
@@ -25,13 +34,15 @@ if the class names look identical.
 // ESM
 import TraceParameters from "@arcgis/core/rest/networks/support/TraceParameters.js";
 import TraceConfiguration from "@arcgis/core/networks/support/TraceConfiguration.js";
+import UNTraceConfiguration from "@arcgis/core/networks/support/UNTraceConfiguration.js";
+import Association from "@arcgis/core/rest/networks/support/Association.js";
 
 // CDN (newer $arcgis loader pattern)
 const TraceParameters = await $arcgis.import("@arcgis/core/rest/networks/support/TraceParameters.js");
 ```
-Note the **two different top-level paths** depending on the class:
-`@arcgis/core/networks/support/...` vs. `@arcgis/core/rest/networks/support/...`
-— getting this wrong is a common source of "module not found" errors; always
+Note the **different top-level paths** depending on the class
+(`@arcgis/core/networks/...`, `@arcgis/core/networks/support/...`, and
+`@arcgis/core/rest/networks/support/...`) — getting this wrong is a common source of "module not found" errors; always
 check the specific class's own reference page for its exact import path
 rather than assuming a uniform `@arcgis/core/networks/...` prefix.
 
@@ -72,37 +83,49 @@ viewElement.addEventListener("arcgisViewReadyChange", () => {
      console.log(namedTraceConfig.globalId + " - " + namedTraceConfig.title);
    });
    ```
-2. **`UNTraceConfiguration`** — build a full trace configuration client-side,
+2. **`UNTraceConfiguration`** (`@arcgis/core/networks/support/UNTraceConfiguration.js`)
+   — build a full trace configuration client-side,
    optionally **starting from** a shared named configuration and then
    customizing it:
    ```javascript
    const sharedNamedTraceConfigurations = utilityNetwork.sharedNamedTraceConfigurations;
-   const traceConfiguration = sharedNamedTraceConfigurations.find(
+   const namedConfig = sharedNamedTraceConfigurations.find(
      (sharedNamedTraceConfig) => sharedNamedTraceConfig.title === "Downstream Trace"
    );
-   // ... customize traceConfiguration further, then hand off to TraceParameters
+   // namedConfig.traceConfiguration (full definition) is only available once the
+   // utility network is fully loaded. Customize a copy, then hand it to
+   // TraceParameters.traceConfiguration (an UNTraceConfiguration), or just pass
+   // namedConfig.globalId as namedTraceConfigurationGlobalId.
    ```
 
 ### `TraceParameters` — constructing the request
 ```javascript
-const traceParameters = TraceParameters.fromJSON({
-  traceConfigurationGlobalId: "{DF22DA8D-6EC0-408B-A8B2-E468EC7DC9BF}",
-  moment: 1554214441244,
+const traceParameters = new TraceParameters({
+  namedTraceConfigurationGlobalId: "{DF22DA8D-6EC0-408B-A8B2-E468EC7DC9BF}",
+  traceLocations: [ /* TraceLocation objects: starting points and barriers */ ],
   gdbVersion: "SDE.DEFAULT",
+  moment: new Date(),            // Date (autocast); branch-versioned data only
   resultTypes: [
     { type: "elements", includeGeometry: false }
     // additional result type objects follow the same REST resultTypes
     // schema documented in the REST reference file
   ]
 });
+const result = await utilityNetwork.trace(traceParameters);   // since 4.27
 ```
-This is a **direct client-side mirror** of the REST `trace` operation's
-request body — `traceConfigurationGlobalId`, `moment`, `gdbVersion`, and
-`resultTypes` all map 1:1 to the REST parameters documented in
-`rest-api/01-utility-network-server-and-trace.md`. When translating between
-"how do I do this via REST" and "how do I do this in JS," this shared
-vocabulary is the bridge, same as the Pro UI ↔ REST ↔ C# SDK bridge noted in
-the REST reference file.
+`TraceParameters` (since 4.20) has these documented properties:
+`gdbVersion`, `moment` (a `Date`, not epoch milliseconds),
+`namedTraceConfigurationGlobalId`, `outSpatialReference`, `resultTypes`,
+`traceConfiguration` (`UNTraceConfiguration`), `traceLocations` and
+`traceType`. These correspond conceptually to the REST `trace` request body
+in `rest-api/01-utility-network-server-and-trace.md`, but **the JS property
+names are not always the REST names** (e.g. the named-configuration
+property is `namedTraceConfigurationGlobalId`, and `moment` is a `Date`).
+Use the JS class reference for exact names rather than assuming a 1:1 REST
+mapping; `UtilityNetwork.trace()` / `submitTraceJob()` (both since 4.27)
+accept a `TraceProperties` object (`namedTraceConfigurationGlobalId`,
+`traceLocations`, `outSpatialReference`, `traceConfiguration`,
+`resultTypes`, `traceType`).
 
 ### Handling trace results (aggregated geometry example)
 ```javascript
@@ -117,9 +140,10 @@ if (traceResult.aggregatedGeometry.multipoint) {
   });
 }
 ```
-`traceResult.aggregatedGeometry` holds separate sub-properties per geometry
-type (`multipoint`, presumably `polyline`/`polygon` siblings for edge/area
-results) — check which sub-property is populated based on what geometry
+`traceResult.aggregatedGeometry` (`AggregatedGeometry`) holds separate
+sub-properties per geometry type: `multipoint` (points), `line` (polylines)
+and `polygon` (polygons; usually outside connectivity topology but can appear
+via containment associations) — check which sub-property is populated based on what geometry
 types the trace's `resultTypes` requested, rather than assuming one fixed
 shape.
 
@@ -130,19 +154,22 @@ shape.
   **geometric coincidence** are **not** returned by an associations query.
   Don't treat an associations query as a complete connectivity picture; use a
   trace for that.
-- **`SynthesizeAssociationGeometriesParameters`** — the JS class for
-  configuring an associations query that needs *visual* geometry back (since
-  associations themselves have no inherent spatial presence — see the Pro
-  Help structure-network reference). Typical usage: load the utility network
-  from the web map first (same pattern as above), then set parameters to
-  filter to specific association types (e.g., structural attachment +
-  connectivity) and cap the result count (example from Esri's guide: max 500
-  associations within the current view extent).
-- **`UtilityNetworkAssociations` widget**
-  (`@arcgis/core/widgets/UtilityNetworkAssociations.js`) — a ready-made UI
-  widget for browsing/managing associations without hand-building the
-  query + rendering logic — worth suggesting when someone wants an
-  associations *UI* rather than raw programmatic access.
+- **`synthesizeAssociationGeometries()`** on `UtilityNetwork` (since 4.28) —
+  returns *visual* geometry for associations (which have no inherent spatial
+  presence — see the Pro Help structure-network reference). It takes a
+  `SynthesizeAssociationGeometriesProperties` object: `returnAttachmentAssociations`,
+  `returnConnectivityAssociations`, `returnContainmentAssociations`, `extent`,
+  `maxGeometryCount` and `outSpatialReference`. The equivalent parameter class
+  `SynthesizeAssociationGeometriesParameters`
+  (`@arcgis/core/rest/networks/support/SynthesizeAssociationGeometriesParameters.js`,
+  since 4.20) is still documented. Load the utility network from the web map
+  first (same pattern as above).
+- **Associations UI**: the imperative `UtilityNetworkAssociations` widget
+  (`@arcgis/core/widgets/UtilityNetworkAssociations.js`) is **deprecated since
+  5.0**; use the **`<arcgis-utility-network-associations>`** component
+  (`@arcgis/map-components/components/arcgis-utility-network-associations`,
+  since 4.28, not deprecated as of 5.1) — worth suggesting when someone wants
+  an associations *UI* rather than raw programmatic access.
 
 ## Practical guidance for Claude
 
@@ -158,3 +185,19 @@ shape.
    a web app," the **named trace configuration** (shared via REST, consumed
    via `sharedNamedTraceConfigurations` in JS) is the correct mechanism —
    not re-building the whole `traceConfiguration` JSON by hand in JS.
+5. New 5.x apps should use the `arcgis-*` UN components, not the deprecated
+   imperative widgets (see files 04 and 05).
+
+## Sources
+- https://developers.arcgis.com/javascript/latest/release-notes/
+- https://developers.arcgis.com/javascript/latest/references/core/networks/UtilityNetwork/
+- https://developers.arcgis.com/javascript/latest/references/core/networks/support/NamedTraceConfiguration/
+- https://developers.arcgis.com/javascript/latest/references/core/networks/support/TraceConfiguration/
+- https://developers.arcgis.com/javascript/latest/references/core/rest/networks/support/TraceParameters/
+- https://developers.arcgis.com/javascript/latest/references/core/rest/networks/support/Association/
+- https://developers.arcgis.com/javascript/latest/references/core/rest/networks/support/AggregatedGeometry/
+- https://developers.arcgis.com/javascript/latest/references/core/rest/networks/support/SynthesizeAssociationGeometriesParameters/
+- https://developers.arcgis.com/javascript/latest/references/core/WebMap/
+- https://developers.arcgis.com/javascript/latest/references/map-components/components/arcgis-utility-network-associations/
+- https://developers.arcgis.com/javascript/latest/references/core/widgets/UtilityNetworkAssociations/
+

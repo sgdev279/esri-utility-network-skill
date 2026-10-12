@@ -1,11 +1,17 @@
 # Utility Network — REST API: Circuits & Unit Identifiers (Telecom) (Deep Reference)
 *Source: developers.arcgis.com/rest/services-reference/enterprise/*
 
-Both resources are **telecom-domain-network-only** — introduced at **11.5**
-(Unit Identifiers' `reserve` operation specifically at **12.1**, replacing/
-complementing the earlier `insertGap`). Both require the **ArcGIS Advanced
-Editing** user type extension. These were previously only named in this
-skill; this file gives them the same depth as everything else.
+> Last reviewed: 2026-10-12 (JS SDK 5.1 / Enterprise 12.1 / UN dataset v8)
+
+Both resources are **telecom-domain-network-only** and were **introduced at
+ArcGIS Enterprise 12.1** (Esri's REST "What's new" lists the `circuits` and
+`unitIdentifiers` resources as new at 12.1; nothing telecom-related is listed
+at 11.5 or 12.0). The `circuits` resource requires the **ArcGIS Advanced
+Editing** user type extension for every operation **except Query**. The
+`unitIdentifiers` resource page does not state a license requirement — verify
+against the Esri docs for your version. A legacy `insertGap` page still
+exists in the REST reference labelled "11.5" (see below); treat that label as
+unreliable.
 
 ## `Circuits` resource
 
@@ -18,62 +24,77 @@ counterpart to how traditional domain networks model subnetworks.
 
 ### `create`
 `POST .../circuits/create`
-- Required: `domainNetworkName` (the telecom domain network), `circuits`
-  (the circuit definition(s) to create).
-- Circuit JSON shape:
+- Parameters: `f`, `gdbVersion` (default `sde.DEFAULT`), `sessionId`,
+  `domainNetworkName` (required — the telecom domain network), and
+  **`circuit`** (required — the circuit definition; a single circuit object per
+  the examples, although the syntax block wraps it in an array — a doc
+  inconsistency, so follow the examples).
+- Circuit JSON shape (per the REST reference):
   ```json
   {
-    "circuits": [
+    "name": "A32/T3U/79232211/82256420",
+    "globalId": "{...}",
+    "isSectioned": true,
+    "sectionOrder": {},
+    "circuitType": "Physical",     // "Physical" | "Virtual", default Physical
+    "sections": [
       {
-        "name": "A32/T3U/79232211/82256420",
-        "globalId": "{...}",
-        "isSectioned": true,
-        "sectionOrder": "",
-        "circuitType": "Physical",     // "Physical" | "Virtual", default Physical
-        "sections": [
-          {
-            "sectionId": 1,
-            "role": "Start and end",
-            "sectionType": "Physical",
-            "startPoint": { "sourceId": 20, "globalId": "{...}", "terminalId": 1, "firstUnit": 1, "numUnits": 1 },
-            "stopPoint":  { "sourceId": 20, "globalId": "{...}", "terminalId": 1, "firstUnit": 1, "numUnits": 1 }
-          }
-        ]
-        // when isSectioned is false, startPoint/stopPoint are given directly
-        // on the circuit rather than nested under sections
+        "sectionId": 1,
+        "role": "Start and end",     // Start and end | Start | End | Midspan
+        "sectionType": "Physical",   // Physical | Virtual
+        "startLocation": { "sourceId": 20, "globalId": "{...}", "firstUnit": 1, "lastUnit": 1 },
+        "stopLocation":  { "sourceId": 20, "globalId": "{...}", "firstUnit": 1, "lastUnit": 1 }
       }
-    ]
+    ],
+    "subcircuits": [
+      { "name": "...", "globalId": "{...}", "providerId": "{...}", "consumerId": "{...}",
+        "state": "Available" }     // Consumed | Reserved | Available (default Available)
+    ],
+    "attributes": {}
   }
   ```
-- `sourceId`/`globalId`/`terminalId`/`firstUnit`/`numUnits` together pinpoint
-  an exact **unit** on a specific feature/terminal — this is the same
-  building-block shape used across circuits, unit identifiers, and location
-  queries throughout this telecom API surface.
+  When `isSectioned` is **false**, `startLocation` / `stopLocation` are given
+  directly on the circuit (and `sections` / `sectionOrder` are not used).
+- A location is `sourceId` + `globalId` + `firstUnit` + `lastUnit` — it
+  pinpoints a range of units on a specific feature. **There is no
+  `startPoint` / `stopPoint`, `terminalId` or `numUnits` in the circuit
+  location object**; those names are not in the documented REST schema.
+- Response: `moment`, `exceededTransferLimit`, `serviceEdits[]` (`id`,
+  `editedFeatures.adds`), `success`.
 
 ### `query`
-`.../circuits/query` — **two query modes**, mutually exclusive:
-1. **By circuit name**: pass `circuits=["CircuitA","CircuitB"]` —
-   `sourceId`/`globalId`/`terminalId`/`firstUnit`/`lastUnit` are **ignored**
-   when a `circuits` array is supplied.
-2. **By trace location**: pass `sourceId`, `globalId`, `terminalId`,
-   `firstUnit`, `lastUnit`, `locationType` (`"start"` or presumably `"stop"`)
-   to find circuits starting/stopping at that specific location instead of
-   naming them.
-- `returnConsumingCircuits` (boolean) — when **`false`** (with trace-location
-  mode), returns only the **immediate** circuits passing through the
-  specified feature; when **`true`**, also returns circuits that **consume**
-  those immediate circuits (i.e., walks up the containment/consumption
-  hierarchy) — an important distinction when someone wants "everything
-  ultimately affected here" vs. "just what's directly here."
-- `domainNetworkName` is **required** on every query.
+`.../circuits/query` (Enterprise 12.1; `domainNetworkName` is **required**).
+Three mutually exclusive ways to select circuits, in order of precedence:
+1. **By circuit name**: `circuits=["CircuitA","CircuitB"]` — if supplied,
+   `circuitIds` and `locations` are ignored.
+2. **By circuit global ID**: `circuitIds=["{GUID}", ...]` — if supplied,
+   `locations` is ignored.
+3. **By location**: `locations=[{ "sourceId", "globalId", "firstUnit", "lastUnit" }]`
+   plus `locationType` = `start` | `stop` | `all` (default `all`).
+- `circuitHierarchy` — `consumers` | `providers` | `consumers and providers` |
+  `none` (default). With `locations` and no hierarchy, only the circuits
+  passing directly through the location are returned; set it to also return
+  consuming and/or providing circuits. **There is no
+  `returnConsumingCircuits` parameter** in the REST reference.
+- `circuitStatus` — filter by `clean` | `dirty` | `invalid` | `deleted`.
+- `resultTypes` — `name` (default; response is `{ "circuitNames": [...], "success" }`)
+  or `circuit` (full definitions incl. sections and subcircuits).
+- Also accepts `gdbVersion`, `sessionId`, `moment`.
 
 ### `alter`, `delete`, `export`, `verify`
-Named operations on the same resource, following the same general
-request-shape conventions (`gdbVersion`, `sessionId`, target circuit
-identification) as `create`/`query` above — consult the live docs for the
-exact parameter set of each before generating code, since detailed schemas
-for these four weren't independently confirmed at the depth `create`/`query`
-were here.
+All take `domainNetworkName` (required), `gdbVersion`, `sessionId`:
+- **`alter`** — `circuit` (required): the full circuit definition **replaces**
+  the existing one, so omitted properties are removed.
+- **`delete`** — `circuits` (required): array of circuit names; **logical**
+  delete; if any circuit fails, the whole operation rolls back.
+- **`export`** — `circuits` (required), `moment`, `exportAcknowledgement`
+  (if `true`, `gdbVersion` must be the default version), `traceConfiguration`,
+  `resultTypes` (`features` | `connectivity` | `associations` | `circuits`;
+  default `features`), `async`, `outSR`. One JSON file per circuit.
+- **`verify`** — `circuits` (required), `async`, `forceVerify` (default
+  `false`; `false` returns an error for clean circuits), `synthesizeGeometries`
+  (default `false`), `outSR`. Confirms each circuit still traces start-to-stop
+  and that sections/subcircuits are valid.
 
 ### Base resource response (when called with no operation)
 ```json
@@ -84,27 +105,27 @@ or, on failure, the standard `{ "success": false, "error": { "extendedCode", "me
 ## `Unit Identifiers` resource
 
 `https://<root>/<serviceName>/UtilityNetworkServer/unitIdentifiers`
-Operations (11.5): **Insert Gap, Query, Reset, Resize**. At **12.1**, Esri's
-own "what's new" describes the operation set as **query, reserve, reset, and
-resize** — i.e., **`reserve`** is the newer/current name for reserving a
-range (see below), while `insertGap` remains documented as its own
-(seemingly earlier or narrower) operation. **If targeting a specific
-Enterprise version, verify which of `insertGap` vs. `reserve` is the
-intended/available operation** rather than assuming they're strictly
-identical or that one has fully replaced the other.
+Operations (Enterprise 12.1 resource page): **Query, Reserve, Reset, Resize**.
+A legacy `insertGap` operation page also remains in the REST reference
+(labelled "11.5", parameters `object`, `firstUnit`, `numUnits`); it is **not**
+in the 12.1 resource's operation list or in the 12.1 "What's new", and it
+duplicates `reserve`'s documented behavior. For 12.1 and later code, use
+**`reserve`** with `firstUnit`/`lastUnit`; if you must target an older
+build, verify against the Esri docs for your version whether `insertGap` is
+available.
 
 Manages the **unit identifier space** on **unit container** features (e.g.,
 a fiber cable) and the **unit identifiable** objects/features nested inside
 them — a telecom-specific allocation system with no traditional-domain-network
 equivalent.
 
-### `reserve` (12.1) / `insertGap` (11.5) — reserve a range of unit IDs
+### `reserve` (12.1) — reserve a range of unit IDs
 ```
 POST .../unitIdentifiers/reserve
 gdbVersion=sde.Default
 object={ "sourceId": 16, "globalId": "{...}" }
 firstUnit=13
-lastUnit=14        // (insertGap uses numUnits instead of lastUnit)
+lastUnit=14        // legacy insertGap used numUnits instead of lastUnit
 ```
 - Shifts existing records in the unit container's `NextUnitID` sequence to
   **reserve a range** — inserting at the **end** of the sequence simply
@@ -115,8 +136,10 @@ lastUnit=14        // (insertGap uses numUnits instead of lastUnit)
   concrete, checkable failure mode worth mentioning proactively.
 
 ### `query`
-Returns the current unit identifier layout for one or more objects,
-including **gaps** and the individual `unitIdentifiers` entries:
+`objects=[{ "sourceId": <n>, "globalIds": ["{...}"] }]` (optional; junction or
+edge unit containers) plus optional `gdbVersion` / `moment`. Returns the
+current unit identifier layout for each container, including **gaps** and the
+individual `unitIdentifiers` entries:
 ```json
 {
   "objects": [
@@ -124,8 +147,8 @@ including **gaps** and the individual `unitIdentifiers` entries:
       "sourceId": 9, "globalId": "{...}",
       "gaps": [ { "start": 4, "end": 7 } ],
       "unitIdentifiers": [
-        { "sourceId": 13, "globalId": "{...}", "firstUnit": 1, "numUnits": 1 },
-        { "sourceId": 13, "globalId": "{...}", "firstUnit": 2, "numUnits": 1 }
+        { "sourceId": 13, "globalId": "{...}", "firstUnit": 1, "lastUnit": 1 },
+        { "sourceId": 13, "globalId": "{...}", "firstUnit": 2, "lastUnit": 2 }
       ]
     }
   ],
@@ -149,14 +172,16 @@ objects=[{"sourceId": 9, "globalIds": ["{...}"]}]
 ### `resize`
 ```
 POST .../unitIdentifiers/resize
-objects={ "sourceId": 18, "globalId": "{...}" }
-numUnits=3
+object={ "sourceId": 18, "globalId": "{...}" }
+lastUnit=3
 ```
 - Alters the **number of units** a single unit-identifiable feature/object
-  occupies — can **increase or decrease**. Operates on **one object**
-  (singular `objects`, not an array, unlike `reset`/`query`) — a parameter
-  **shape inconsistency worth double-checking** in generated code (don't
-  assume every operation on this resource takes an array uniformly).
+  occupies — can **increase or decrease** — by giving the new `lastUnit`
+  (**not** a `numUnits` parameter). Operates on **one object**, unlike
+  `reset`/`query` which take arrays.
+- Doc inconsistency: the parameter table names the parameter `object` but the
+  page's example sends `objects=` (still a single object). Prefer `object`
+  and confirm against the Esri docs for your version.
 
 ### Pro Help cross-reference (the UI side of the same operations)
 The **Unit ID Operations pane** in ArcGIS Pro exposes the same four
@@ -165,7 +190,8 @@ IDs** (all three operate on a selected **unit container** feature), and
 **Resize Unit IDs** (operates on a selected **unit identifiable**
 feature/object instead) — the same container-vs-identifiable object
 distinction that governs which REST parameter shape (singular object vs.
-array) applies.
+array) applies. (Pro Help: Query / Reserve / Reset apply to a **unit
+container**; Resize applies to a **unit identifiable** object.)
 
 ## Practical guidance for Claude
 
@@ -179,5 +205,22 @@ array) applies.
 3. When reserving/inserting unit ID ranges, proactively mention the two
    documented failure modes (object regrouping required, or landing mid
    connectivity-assignment) rather than only showing the happy path.
-4. Treat `insertGap` vs. `reserve` as a version-sensitive naming question —
-   ask or check the target Enterprise version rather than assuming.
+4. Use `reserve` (12.1+); do not generate `insertGap` code unless the user
+   explicitly targets a build where that operation is documented.
+
+## Sources
+- https://developers.arcgis.com/rest/services-reference/enterprise/whats-new/
+- https://developers.arcgis.com/rest/services-reference/enterprise/circuits-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/create-circuits-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/query-circuits-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/alter-circuits-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/delete-circuits-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/export-circuits-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/verify-circuits-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/unitIdentifiers-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/query-unitIdentifiers-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/reserve-unitIdentifiers-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/reset-unitIdentifiers-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/resize-unitIdentifiers-utility-network-server/
+- https://developers.arcgis.com/rest/services-reference/enterprise/insertGap-unitIdentifiers-utility-network-server
+- https://pro.arcgis.com/en/pro-app/3.5/help/data/utility-network/work-with-unit-identifiers.htm

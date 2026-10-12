@@ -1,6 +1,8 @@
 # Utility Network — JS API: Layers & Rendering (SubtypeGroupLayer) (Deep Reference)
 *Source: developers.arcgis.com/javascript/latest/*
 
+> Last reviewed: 2026-10-12 (JS SDK 5.1 / Enterprise 12.1 / UN dataset v8)
+
 ## Why this matters for every UN web app
 
 Utility network feature classes are published from Pro with **subtypes**
@@ -38,7 +40,7 @@ map.add(stgl);
 ### Creating from a portal item
 ```javascript
 const stgl = new SubtypeGroupLayer({
-  portalItem: { id: "8444e275037549c1acab02d2626daae" }
+  portalItem: { id: "<32-character portal item id>" }  // Esri's own sample shows a 31-character id; use your real item id
 });
 map.add(stgl);
 ```
@@ -55,9 +57,12 @@ const stgl = new SubtypeGroupLayer({
   outFields: ["assettype", "assetgroup", "objectid", "transformer_kva", "subnetworkname"]
 });
 ```
-- **Passing a `sublayers` array limits which subtypes actually load** — only
-  listed `subtypeCode`s become sublayers; this is a common gotcha when
-  someone expects *all* subtypes to appear but only configured a few.
+- **Gotcha — `sublayers` array and which subtypes appear**: the SDK reference
+  says sublayers are created dynamically, one per subtype in the service, and
+  configured through the `sublayers` property. Some apps see only the
+  explicitly listed `subtypeCode`s after passing an array; that exact behavior
+  is not stated on the reference page, so verify against the Esri docs for
+  your version (inspect `layer.sublayers` after `await layer.load()`).
 - Set `outFields` at the group level to make asset-group/asset-type and any
   other attributes available for **client-side filtering, labeling, and
   popups** across all sublayers without extra requests.
@@ -91,12 +96,19 @@ import SubtypeSublayer from "@arcgis/core/layers/support/SubtypeSublayer.js";
   express independent per-asset-group symbology, and re-publishing per
   subtype as separate services is the anti-pattern this class exists to
   avoid.
-- If someone's sublayers "aren't showing up," check whether they explicitly
-  passed a `sublayers` array that only lists a subset of `subtypeCode`s.
+- If someone's sublayers "aren't showing up," check whether they passed a
+  `sublayers` array that only lists a subset of `subtypeCode`s, and inspect
+  `layer.sublayers` after load.
 - Remind them the source service needs a subtype field published from Pro
   — if their data isn't showing any subtypes at all, that's very likely a
   publishing-time problem, not a client-code problem.
 - For rendering **associations** (dashed connector lines, etc.) rather than
-  network features themselves, that's the `UtilityNetworkAssociations`
-  widget/`SynthesizeAssociationGeometriesParameters` path covered in
+  network features themselves, that's the `arcgis-utility-network-associations`
+  component (the `UtilityNetworkAssociations` widget is deprecated since 5.0) /
+  `synthesizeAssociationGeometries()` path covered in
   `js-api/05-editing-associations-validation.md`, not `SubtypeGroupLayer`.
+
+## Sources
+- https://developers.arcgis.com/javascript/latest/references/core/layers/SubtypeGroupLayer/
+- https://developers.arcgis.com/javascript/latest/references/core/layers/support/SubtypeSublayer/
+- https://developers.arcgis.com/javascript/latest/release-notes/
