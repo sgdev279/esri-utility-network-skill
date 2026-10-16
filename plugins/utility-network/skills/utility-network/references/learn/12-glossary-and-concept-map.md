@@ -1,5 +1,5 @@
 # Utility Network: Glossary and Concept Map
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 Read this when you meet a Utility Network (UN) word you cannot place, when two people use different words for the same thing (Pro versus REST versus code versus the old geometric network), or when you need a reading order. It is a lookup and orientation file: every entry points to the file that teaches the mechanism, so the definitions are deliberately one line. Builds on `pro-help/01-core-concepts-and-vocabulary.md` and `pro-help/02-structure-of-a-utility-network.md`. Sources: the reference files linked in each row (which carry the Esri URLs they were built from) plus the Esri geometric network vocabulary page listed at the end. Domain-neutral: no per-industry vocabulary tables (a later release). Nothing here is new research; where the linked files say "verify against the Esri docs for your version", that caveat carries over.
 
@@ -115,7 +115,7 @@ Columns: **Shows up as** lists where you will see the term (Pro label, REST prop
 | Edge element | Piece of a line inside the topology, split at midspan connections | Function counts; trace result sizing | | Terminals count as junction elements. `learn/10-performance-scale-and-operations.md` |
 | Edge object | Nonspatial edge row (for example a strand in a cable) | `<Name>EdgeObject` | UN v4+ | Not a junction object. `learn/02-data-model-in-depth.md` |
 | Edge-junction-edge rule | Rule letting two lines connect through an intermediate junction or device | Add Rule type; "Via" fields | | Junction-edge is honoured first. `learn/04-rules-and-connectivity-design.md` |
-| Edit mode | Whether Update Subnetwork honours geodatabase contracts: without eventing (default) or with | Set Subnetwork Definition | UN v4+ | With eventing fires attribute rules, holds a shared lock on DEFAULT. `learn/06-tiers-and-subnetworks-in-depth.md` |
+| Edit mode | Whether Update Subnetwork honours geodatabase contracts: without eventing (default) or with | Set Subnetwork Definition | UN v4+ (verify against the Esri docs for your version) | With eventing fires attribute rules, holds a shared lock on DEFAULT. `learn/06-tiers-and-subnetworks-in-depth.md` |
 | Element | Lightweight handle: source + GlobalID (+ terminal) | C# `Element`; REST `elements` result; JS `NetworkElement` | | Not a feature row. `learn/14-developer-surfaces-and-sdk-fundamentals.md` |
 | Enable Network Topology | Builds the topology; writes existing errors as dirty areas | Tool; REST `enableTopology` | | Cap 10000 errors default. `learn/03-topology-engine-and-validation.md` |
 | Error dirty area | Dirty area carrying an error bit (8, 16, 32) | Dirty Areas `STATUS` | | Validate ignores it unless an edit bit is present. `learn/03-topology-engine-and-validation.md` |
@@ -138,7 +138,7 @@ Columns: **Shows up as** lists where you will see the term (Pro label, REST prop
 | Include containers/content/structures | Trace and definition flags adding those features to results or name stamping | `includeContainers` etc. | defs UN v5+ | All off by default. `learn/07-tracing-in-depth-and-configuration-library.md` |
 | In Line | Network attribute stored inside the topology instead of read from the table | Add Network Attribute; arcpy `isEmbedded` | | 64-bit budget, 25 user bits (Pro 3.0+ datasets). `learn/05-attributes-categories-and-attribute-rules.md` |
 | Indeterminate flow | Flow that cannot be resolved (loops, meshes, several sources) | `allowIndeterminateFlow` | UN v5+ | `learn/07-tracing-in-depth-and-configuration-library.md` |
-| Invalid | Subnetwork status after an update error; skipped until made Dirty | `ISDIRTY` = Invalid; red | UN v4; Pro 3.1+, Ent 11.1+ | `learn/06-tiers-and-subnetworks-in-depth.md` |
+| Invalid | Subnetwork status after an update error; skipped until made Dirty | `ISDIRTY` = Invalid; red | UN v4; Ent 11.1+ (Esri's life-cycle page names no Pro version; verify against the Esri docs for your version) | `learn/06-tiers-and-subnetworks-in-depth.md` |
 | `ISCONNECTED` | Snapshot: is the feature connected to a controller | Field; Update Is Connected | traditional only | `learn/01-mental-model-and-life-of-an-edit.md` |
 | Isolation trace | Finds the operable features that cut a location off | `traceType` `isolation` | | Requires a filter barrier. `learn/07-tracing-in-depth-and-configuration-library.md` |
 | Junction | Point class for connectivity without effect on the resource; no terminals | `<Name>Junction` | | Not a device. `learn/02-data-model-in-depth.md` |
@@ -216,7 +216,7 @@ A dash means no equivalent was found in the linked files. Entry points only; par
 |---|---|---|---|---|---|
 | Classification | Asset Group / Asset Type | `assetGroupCode`, `assetTypeCode` | see `js-api/03-network-class-loading-and-definition.md` | `AssetGroup`, `AssetType` | `assetgroup`, `assettype` parameters |
 | Row identity | GlobalID | `globalId` | `globalId` | `Element` (source + GlobalID) | `FEATUREGLOBALID` in locations |
-| Starting point | Trace pane Start tab | `traceLocationType` `startingPoint` | `TraceLocation` `type: "starting-point"` | `Element` in `TraceArgument.StartingLocations` | `starting_points` layer |
+| Starting point | Trace pane Start tab (label per `learn/13`; verify against the Esri docs for your version) | `traceLocationType` `startingPoint` | `TraceLocation` `type: "starting-point"` | `Element` in `TraceArgument.StartingLocations` | `starting_points` layer |
 | Barrier / condition barrier | Barriers tab / Set Subnetwork Definition | `barrier` location / `conditionBarriers` | kebab-case `barrier` location (verify) | `TraceArgument.Barriers` / `Traversability` | `condition_barriers` |
 | Trace | Trace pane, tool gallery | `.../trace` | `utilityNetwork.trace()` | `Tracer.Trace(TraceArgument)` | `arcpy.un.Trace` |
 | Named trace configuration | Named Configurations tab | `traceConfigurationGlobalId` | `namedTraceConfigurationGlobalId` | `GetNamedTraceConfigurations` | `trace_config_name` |

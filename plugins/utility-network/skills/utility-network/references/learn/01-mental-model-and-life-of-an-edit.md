@@ -285,7 +285,7 @@ Practitioner guidance: choose partitioned for strictly sequential, disjoint volt
 - "Containers carry flow." Esri: resources do not flow through containers; a trace can return contained devices without returning the container.
 - "Terminals are required everywhere." They are optional (default is Single Terminal) but required for subnetwork controllers; telecom domain networks do not support terminals.
 - "Topology type (mesh/radial) changes tracing." Esri states it currently makes no difference to tracing or subnetwork management.
-- "More tiers is free." A UN can hold at most 63 tiers across all domain networks.
+- "More tiers is free." A UN has a finite tier budget (63 across all domain networks is the figure reported in some Esri material; the Add Tier tool page does not state it, so verify against the Esri docs for your version).
 
 ## Quick checks
 

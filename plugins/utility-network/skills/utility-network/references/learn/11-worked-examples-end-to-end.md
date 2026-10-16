@@ -41,11 +41,11 @@ Conventions. Vocabulary is domain-neutral: a **device** (point that controls the
 **Exact steps (Pro, enterprise).**
 1. Prerequisites an administrator must have in place (`learn/13` section 2): topology enabled; a junction-edge rule from the device's asset group and asset type to the line's pair (`Add Rule`, rule type junction-edge connectivity; terminal named if the device has terminals); the line's edge connectivity policy (default End vertex is enough here because both lines end at the device).
 2. Open the map from the **Portal** tab (service layer), Versioning tab, **New Version**, tick **Change to this new version** (`learn/13` section 3.1; `learn/08` section 10). Never edit DEFAULT directly.
-3. **Edit** tab, **Features**, **Create**; pick the device template and click on the line. Split the line at the device (Edit tab, Tools group, split tool; Esri step names are in `learn/13`, check your Pro version).
+3. **Edit** tab, **Features**, **Create**; pick the device template and click on the line. Split the line at the device with the **Split** tool in the **Modify Features** pane (Esri's editing reference places it there and says the split features meet at a system junction; the ribbon location of Modify Features is not stated, so verify against the Esri docs for your version).
 4. If the device has terminals: Utility Network tab, Network Topology group, **Terminal Connections**; set the terminal each line end connects to. Do not hand-edit `FROMDEVICETERMINAL`/`TODEVICETERMINAL` (`learn/02` section 6).
 5. Utility Network tab, **Validate**, **Current extent** (synchronous). Open the Dirty Areas attribute table or **Error Inspector** (Map Extent filter on by default).
 6. **Edit** tab, **Save**.
-7. Trace pane, **Start** tab, **Add features**, click a line on one side; choose **Connected**; tick **Validate Consistency** (unchecked by default in the Pro tool); run (`learn/07` sections 13 and 16).
+7. Trace pane, **Start** tab, **Add features**, click a line on one side; choose **Connected**; tick **Validate Consistency** (unchecked by default in the Pro tool; Esri trace tool page); run (`learn/07` sections 13 and 16). Pane tab and button labels follow `learn/13`; verify against the Esri docs for your version.
 
 **Expected result.** After step 5 the Dirty Areas table has no `Status` 1/2/4 rows in the footprint and no error-only rows (8/16/32) there. The trace returns both lines and the device. If subnetworks exist, the feeder or zone containing the device is now Dirty; its stored name on the new device is not yet written (that is scenario 4).
 
@@ -148,7 +148,7 @@ Does a Connected trace from a neighbour include the new device?
 4. Re-read Status and the device's `SUBNETWORKNAME`.
 
 **Equivalent calls.**
-- arcpy (names from `learn/14` section 5.3; confirm on the tool page): `arcpy.un.UpdateSubnetwork(un, "<DOMAIN_NETWORK>", "<TIER>", all_subnetworks_in_tier="SPECIFIC_SUBNETWORK", subnetwork_name="<NAME>", continue_on_failure="STOP_ON_FAILURE")`.
+- arcpy (keywords confirmed on the Esri Update Subnetwork tool page: `subnetwork_name`, `all_subnetworks_in_tier` with `SPECIFIC_SUBNETWORK`, `continue_on_failure`): `arcpy.un.UpdateSubnetwork(un, "<DOMAIN_NETWORK>", "<TIER>", all_subnetworks_in_tier="SPECIFIC_SUBNETWORK", subnetwork_name="<NAME>", continue_on_failure="STOP_ON_FAILURE")`.
 - REST: `POST .../UtilityNetworkServer/updateSubnetwork` with `domainNetworkName`, `tierName`, `subnetworkName` (or `allSubnetworksInTier=true`), `gdbVersion`, and `sessionId` on a named version only (`learn/06` section 10; `rest-api/02`).
 
 **Expected result.** The subnetwork becomes Clean, the new device carries the subnetwork name, `SubnetLine` is refreshed, and a subnetwork trace by name includes the device. Propagated values (for example a phase or pressure class) are written at the same time if the tier defines propagators (`learn/05` section 5).
@@ -236,7 +236,7 @@ Editor B (second):
    `Junction Edge Connectivity,<DEVICE_CLASS>,<GROUP>,<BYPASS_CONNECTOR>,<TERMINAL>,<LINE_CLASS>,<GROUP>,<MAIN_TYPE>,,,,,`
    Name the terminal when the type has terminals; avoid `*` unless every terminal may touch that line (the water tower example produced error 9; `learn/04` section 7).
 7. **Enable Network Topology**. Restart the service and Pro; named versions pick up the rule on reconcile.
-8. The failed feature is an error-only row. Edit it (retype and retype back, or re-snap) so the edit bit re-queues it, then validate (`learn/03` section 4).
+8. The failed feature is an error-only row. Esri says features with errors are evaluated the next time topology is enabled or validated (About error features), but its dirty-areas page says validate ignores error rows without an edit bit. So after step 7 check the Dirty Areas table; if the row remains, edit the feature (retype and retype back, or re-snap) so the edit bit re-queues it, then validate (`learn/03` section 4).
 
 **Expected result.** The pair connects at validate, the dirty area clears, a Connected trace crosses the device, and the exported rule CSV shows exactly one new row. Re-enable marks every subnetwork Dirty, so plan an Update Subnetwork pass (`learn/03` section 2).
 
@@ -245,7 +245,7 @@ Editor B (second):
 | Symptom | Cause |
 |---|---|
 | New error 9 after the fix | Rule too broad (All terminals or a second overlapping rule); the engine cannot choose (`learn/04` section 7) |
-| Rule exists but nothing changes | Service not restarted, named version not reconciled, or the row is error-only and was not edited (`learn/04` section 13) |
+| Rule exists but nothing changes | Service not restarted, named version not reconciled, or the row is error-only, survived the enable and was not edited (`learn/04` section 13) |
 | "Cannot add rule" | Topology still enabled, wrong owner connection, not DEFAULT, or the pair violates a feature restriction |
 | Neighbouring features break | The topology was disabled and re-enabled; everything outstanding was validated and errors surfaced elsewhere |
 | The wrong rule family chosen | Edge-junction-edge needed (a type change across the device) but only junction-edge written, so error 10 remains |
@@ -401,7 +401,7 @@ Procedure order, all with topology disabled, on DEFAULT, as database owner with 
 2. List what reads the data: scripts reading `ERRORCODE` as a float (changed to big integer at v7), code assuming 32-bit ObjectIDs, saved trace configurations (need v5+), published services, Native SDK apps, older Pro seats (`learn/09` section 9).
 3. Rehearse on a copy of the production database. Time it: v7 drops and re-creates indexes on all UN tables, so it can take noticeably longer (`learn/10` section 14). Capture baseline timings for validate and Update Subnetwork afterwards.
 4. Production window: save edits, reconcile and post the named versions you care about; stop the feature service and close every connection; **Disable Network Topology**.
-5. Connect as the database utility network owner (branch versioning type) and sign in to Pro as the portal owner; confirm the geodatabase is at 11.2.0 or later for v7+ targets.
+5. Connect as the database utility network owner (branch versioning type) and sign in to Pro as the portal owner; confirm the geodatabase meets the minimum for your target (the 11.2.0 figure is from `pro-help/09`; Esri's compatibility page gives no database minimum, so verify against the Esri docs for your version).
 6. Take the backup, then run **Upgrade Dataset** with the Utility Network Version parameter set to **8** explicitly. Esri's pages do not say whether the upgrade is reversible, so treat it as irreversible (`learn/10` section 14).
 7. Afterwards: **Enable Network Topology**; restart and review the service; re-add UN layers to maps; reconcile named versions; run Analyze Datasets; run a full validate and Update Subnetwork for each tier to capture new baselines (`pro-help/09`; `learn/10` section 14).
 8. Only then add the telecom domain network (topology disabled, Default version, owner connections) with `Add Telecom Domain Network` (`learn/02` section 1).

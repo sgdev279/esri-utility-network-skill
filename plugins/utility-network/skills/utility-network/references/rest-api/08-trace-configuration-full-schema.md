@@ -160,7 +160,7 @@ supply it anyway). `shortestPath` is deprecated at 12.1 in favour of `path`.
 
 | Property | REST (Trace page) | Pro Trace tool / Configure a trace |
 |---|---|---|
-| `validateConsistency` | `true` | Validate Consistency unchecked (false) by default, for performance |
+| `validateConsistency` | `true` when omitted (REST default) | Validate Consistency is unchecked (false) by default in the Trace tool, for performance; the two defaults differ, so set it explicitly |
 | `allowIndeterminateFlow` | no default stated (send it explicitly) | checked (true) by default; needs UN dataset v5+ |
 | `numPaths` | 1 | 1 (Add Trace Configuration tool page says 2; set it explicitly) |
 | `includeFlowDirections` | no default; introduced Enterprise 12.1; elements, features and connectivity results only | unchecked; Enterprise 12.1+ for enterprise geodatabases |
