@@ -121,6 +121,7 @@ parts involved, then the code in the target surface (format 3).
 | `learn/08-versioning-and-editing-workflows.md` | Branch versioning, sessions and locks, reconcile/post, validate and update in versions, editing in Pro and via services, bulk loads |
 | `learn/09-failure-anatomy-symptom-to-fix.md` | Symptom-to-cause triage, error code catalogue, what to ask first |
 | `learn/10-performance-scale-and-operations.md` | Where time goes, validate/update/trace performance, database and service tuning, maintenance routines |
+| `learn/13-arcgis-pro-fundamentals-and-workflow.md` | Pro anatomy (tab, panes, tables), the ordered build/administer flow with owner and license per step, tool map of the UN toolbox, daily work by role, single-user differences |
 
 **Concepts & administration (ArcGIS Pro Help)**
 | File | Read when |
