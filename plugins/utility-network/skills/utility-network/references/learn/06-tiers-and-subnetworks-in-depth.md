@@ -79,7 +79,7 @@ Pro help example: transmission rank 1, medium voltage rank 2, low voltage rank 3
 
 **Topology type** (Mesh or Radial): chosen at tier creation. Esri states it **currently makes no difference to tracing or subnetwork management** and is under development for a future release. Hierarchical tiers are mesh only. Do not design around it; record the intent for the future.
 
-**Add Tier** (Esri tool and "Define a tier"): topology disabled; tier name unique in the utility network (the tool page states only this; a 64-character limit and a forbidden-character list appear in other material, so verify them against the Esri docs for your version) (including `. ! ' [ ] ; :: { } | \ < > ? @ $ % ^ * + = ~` and backtick); network classes must be **empty** because the tool adds a non-nullable subnetwork-name field.
+**Add Tier** (Esri tool and "Define a tier"): topology disabled; tier name unique in the utility network (the tool page states only this; a 64-character limit and a forbidden-character list appear in other material, so verify them against the Esri docs for your version); network classes must be **empty** because the tool adds a non-nullable subnetwork-name field.
 
 **Subnetwork name fields.** Hierarchical: the `Subnetwork Field Name` parameter of the first tier in a group creates a string field on every domain network class (length 2000, indexed, not editable, not nullable, default `Unknown`); later tiers in that group reuse it; different groups may use different fields. Partitioned: one system field, `Subnetwork name`, is added with the first tier.
 
