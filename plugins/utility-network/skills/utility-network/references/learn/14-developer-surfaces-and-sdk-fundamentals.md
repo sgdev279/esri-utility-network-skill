@@ -1,5 +1,5 @@
 # Utility Network: Developer Surfaces and SDK Fundamentals
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 *Sources: Esri ArcGIS Pro SDK ProConcepts and API reference (3.7), ArcGIS Pro tool reference, ArcGIS Enterprise REST reference, ArcGIS Maps SDK for JavaScript 5.1 reference, ArcGIS Maps SDK for .NET reference (full list at the end).*
 
@@ -122,13 +122,13 @@ Everything below is named in the Pro 3.x namespace listing or ProConcepts unless
 | Trace | `TraceManager` | From `GetTraceManager()`. `GetTracer<T>()`, `GetTracer(NamedTraceConfiguration)`, `GetNamedTraceConfigurations(NamedTraceConfigurationQuery)` |
 | Trace | `Tracer` and subclasses (`ConnectedTracer`, `UpstreamTracer`, `DownstreamTracer`, `SubnetworkTracer`, `IsolationTracer`, `LoopsTracer`, `ShortestPathTracer`; at 3.7 `PathTracer`, `CircuitTracer`) | `Trace(TraceArgument)` and `Trace(TraceArgument, ServiceSynchronizationType)`, both returning `IReadOnlyList<Result>`; `Export(...)` writes trace JSON |
 | Trace | `TraceArgument` | `Barriers`, `FilterBarriers`, `StartingLocations`, `StoppingLocations`, `Configuration`, `ResultTypes`, `ResultOptions`, `Subnetwork`, `Circuit` |
-| Trace | `TraceConfiguration` | Basic properties (`AllowIndeterminateFlow` default true, `IncludeContainers`, `IncludeContent`, `IncludeStructures`), then `Traversability`, functions, filters, output, propagators; 3.7 adds `InferConnectivity`, `SynthesizeGeometries`, `MaxHops`, `NumPaths` |
+| Trace | `TraceConfiguration` | Basic properties (`AllowIndeterminateFlow` default true, `IncludeContainers`, `IncludeContent`, `IncludeStructures`), then `Traversability` (`Barriers`, `FunctionBarriers`, `Scope`), `Filter` (`Barriers`, `FunctionBarriers`, `BitsetNetworkAttribute`, `NearestNeighbor`, `Scope`), `Functions`, `OutputAssetTypes`, `OutputCondition`, `Propagators`, `SourceTier`, `TargetTier`, `ShortestPathNetworkAttribute`, `UseDigitizedDirection`, `ValidateConsistency`; `InferConnectivity`, `SynthesizeGeometries`, `MaxHops`, `NumPaths` are in the 3.7 reference (there is no `Output` property) |
 | Trace | `NetworkAttributeComparison`, `CategoryComparison`, `And`, `Or`, `Operator`, `CategoryOperator`, `FunctionBarrier`, `Add` (a `Function`), `Propagator`, `NearestNeighbor`, `OutputCondition` | The condition and function vocabulary of `learn/07-tracing-in-depth-and-configuration-library.md` |
 | Trace | `ResultType` and `Result` subclasses | `ResultType` members: AggregatedGeometry, Circuit (reserved), Connectivity, ContainmentAndAttachment, Element, Feature, FunctionValue, Path (reserved). Results: `ElementResult`, `FeatureElementResult`, `FunctionOutputResult`, `AggregatedGeometryResult`, and at 3.7 `PathResult`, `CircuitResult` |
 | Telecom (3.7) | `CircuitManager`, `Circuit`, `UnitIdentifierManager`, `UnitRange`, `DividePolicy`, `CombinePolicy` | See `rest-api/07-circuits-and-unit-identifiers-telecom.md` for the service behaviour |
 | Diagrams | `DiagramManager` | From `GetDiagramManager()`; diagrams are in `ArcGIS.Core.Data.NetworkDiagrams` |
 
-Unverified in this review: the exact property names inside `Traversability`, `Filter` and `Output`, and the second argument's meaning in `UpdateAllSubnetworks(tier, bool)`. Verify against the Esri API reference for your version.
+Checked against the 3.6/3.7 API reference: `Traversability.Barriers` (a condition) and `.Scope` (`TraversabilityScope`) are documented, `Filter` has the five properties above, and `UpdateAllSubnetworks(Tier, bool continueOnFailure)` returns void and creates its own transaction. `Traversability.FunctionBarriers` is used in `pro-sdk/01-*.md`; I did not find it on the class page, so verify against the Esri docs for your version.
 
 ### 3.3 Threading
 
@@ -144,7 +144,7 @@ Esri: almost all UN methods must run on the **Main CIM Thread (MCT)**; wrap them
 |---|---|
 | A table or layer already in the map | `table.IsControllerDatasetSupported()`, then `table.GetControllerDatasets()`; keep the `UtilityNetwork` item and dispose the rest (a table can belong to several controller datasets but at most one is a UN). For a `UtilityNetworkLayer`, `GetUtilityNetwork()`; for a `SubtypeGroupLayer`, descend to its first child layer; for a `FeatureLayer`, `GetFeatureClass()` then `GetControllerDatasets()` |
 | A geodatabase | `Geodatabase.OpenDataset<UtilityNetwork>(name)`; the definition via `geodatabase.GetDefinition<UtilityNetworkDefinition>(name)` |
-| A feature service | `new Geodatabase(new ServiceConnectionProperties(new Uri(featureServerUrl)))` then open the UN as above. Esri notes that the client-server dataset name can differ from the name you expect, so read the name from the definition rather than assuming it. Federated Server and ArcGIS Online credentials come from the signed-in Pro portal connection, not from properties you set |
+| A feature service | `new Geodatabase(new ServiceConnectionProperties(new Uri(featureServerUrl)))` then open the UN as above. Esri notes that the client-server dataset name can differ from the name you expect, so read the name from the definition rather than assuming it. For federated Portal and ArcGIS Online services, credentials come from the signed-in Pro portal connection and cannot be set through the API; for a non-federated ArcGIS Server service, set `ServiceConnectionProperties.User` and `.Password` (Esri advises against clear text; use Windows Credential Manager) |
 
 `UtilityNetwork.GetServerCapabilities()` (guard with `AreServerCapabilitiesSupported()`) is the SDK counterpart of the REST `capabilities` block in `rest-api/01-*.md`.
 
@@ -183,7 +183,8 @@ There is no `Job<T>` in the Pro SDK (`pro-sdk/01-*.md`). You choose a service en
 | `ValidateNetworkTopology()` (whole network) | Asynchronous (runs in the Geoprocessing Server; Pro polls until done) |
 | `ValidateNetworkTopology(Geometry)` (an extent) | Synchronous, "intended for use with small areas" |
 | `ValidateNetworkTopology(IEnumerable<Selection>)` | Synchronous |
-| Overloads that also take `ServiceSynchronizationType` | The one you pass; add `ValidationType` (Normal, Repair, ForceRebuild) for the three-argument forms |
+| `(Geometry, ServiceSynchronizationType)` and `(IEnumerable<Selection>, ServiceSynchronizationType)` | The one you pass (a null extent means the entire network) |
+| `(..., ServiceSynchronizationType, ValidationType)` | The one you pass; `ValidationType` is Normal, Repair or ForceRebuild |
 
 Synchronous calls run on the UN server and can time out; asynchronous calls run on the GP server and Pro polls. Either way the C# call returns when the work is done. `Tracer.Trace(...)`, `Subnetwork.Update(TraceConfiguration, ServiceSynchronizationType)` and `SubnetworkExportOptions.ServiceSynchronizationType` use the same enumeration.
 
@@ -203,11 +204,11 @@ All five surfaces serialise the same concepts. The table gives the exact entry p
 
 | Concept | Pro SDK (C#) | arcpy (`arcpy.un`) | REST (`UtilityNetworkServer`) | JS Maps SDK 5.1 |
 |---|---|---|---|---|
-| **Trace** | `TraceManager.GetTracer<T>()` or `GetTracer(NamedTraceConfiguration)`; `Tracer.Trace(TraceArgument[, ServiceSynchronizationType])` | `arcpy.un.Trace(in_utility_network, trace_type, starting_points, ...)` (`trace_type` keywords such as `UPSTREAM`; `result_types` such as `ELEMENTS`) | `POST .../trace` (`traceType`, `traceLocations`, `traceConfiguration` or `traceConfigurationGlobalId`, `resultTypes`, `async`) | `utilityNetwork.trace(props)` or `trace(url, params)` from `@arcgis/core/rest/networks/trace.js`; component `<arcgis-utility-network-trace-analysis>` |
+| **Trace** | `TraceManager.GetTracer<T>()` or `GetTracer(NamedTraceConfiguration)`; `Tracer.Trace(TraceArgument[, ServiceSynchronizationType])` | `arcpy.un.Trace(in_utility_network, trace_type, starting_points, ...)` (`trace_type` keywords such as `UPSTREAM`; `result_types` such as `ELEMENTS`; the Pro 3.5/3.6 pages list no `PATH` or `CIRCUIT` keyword, and the 3.7 page shows Path and Circuit trace types but not their Python keywords: Verify against the Esri docs for your version) | `POST .../trace` (`traceType`, `traceLocations`, `traceConfiguration` or `traceConfigurationGlobalId`, `resultTypes`, `async`) | `utilityNetwork.trace(props)` or `trace(url, params)` from `@arcgis/core/rest/networks/trace.js`; component `<arcgis-utility-network-trace-analysis>` |
 | **Starting point** | `Element` (from `CreateElement`) with a `Terminal` for multi-terminal devices | A layer or table with `FEATUREGLOBALID` (default `UN_Temp_Starting_Points`) | `{"traceLocationType":"startingPoint","globalId","terminalId"}` or `percentAlong` for edges | `TraceLocation { type: "starting-point", globalId, terminalId / percentAlong }` (kebab-case) |
 | **Named trace configuration** | `NamedTraceConfigurationQuery`, `GetNamedTraceConfigurations` | `use_trace_config`, `trace_config_name` | `traceConfigurations` resource (`create`, `query`, `alter`, `delete`); `traceConfigurationGlobalId` | `utilityNetwork.sharedNamedTraceConfigurations`; `namedTraceConfigurationGlobalId` |
 | **Validate** | `UtilityNetwork.ValidateNetworkTopology(...)` returning `ValidationResult`; `GetState()` first | `arcpy.un.ValidateNetworkTopology(in_utility_network, {extent})` (extent keywords `MAXOF`, `MINOF`, `DISPLAY`, layer, extent object, or "xmin ymin xmax ymax") | `POST .../validateNetworkTopology` (`validateArea`, `validationSet`, `validationType`, `async`) | `utilityNetwork.validateTopology({validateArea, validationType, validationSet})`, `submitTopologyValidationJob(...)`; component `<arcgis-utility-network-validate-network-topology>` |
-| **Update subnetwork** | `Subnetwork.Update()`, `Update(TraceConfiguration, ServiceSynchronizationType)`; `SubnetworkManager.UpdateAllSubnetworks(tier, bool)` | `arcpy.un.UpdateSubnetwork(in_utility_network, domain_network, tier, ...)` | `POST .../updateSubnetwork` (`domainNetworkName`, `tierName`, `subnetworkName` or `allSubnetworksInTier`, `continueOnFailure`, `async`) | - (no method found; call REST) |
+| **Update subnetwork** | `Subnetwork.Update()`, `Update(TraceConfiguration, ServiceSynchronizationType)`; `SubnetworkManager.UpdateAllSubnetworks(Tier tier, bool continueOnFailure)` (returns void) | `arcpy.un.UpdateSubnetwork(in_utility_network, domain_network, tier, ...)` | `POST .../updateSubnetwork` (`domainNetworkName`, `tierName`, `subnetworkName` or `allSubnetworksInTier`, `continueOnFailure`, `async`) | - (no method found; call REST) |
 | **Export subnetwork** | `Subnetwork.Export(Uri, SubnetworkExportOptions)` | `arcpy.un.ExportSubnetwork` | `POST .../exportSubnetwork` | - |
 | **Associations: read** | `GetAssociations(element[, type])`, `TraverseAssociations(...)` | - (class has add/delete only) | `Associations/query`, `Associations/traverse` | `queryAssociations(props)`, `loadAssociationsTable()` |
 | **Associations: write** | `EditOperation` + `AssociationDescription` (Add-in); `AddAssociation` / `DeleteAssociation` (low level) | `arcpy.un.UtilityNetwork`: `AddConnectivityAssociation`, `AddContainmentAssociation`, `AddStructuralAttachmentAssociation`, and the `Delete*` pair (Esri spells one `DeleteStructualAttachmentAssociation`); or the `Import Associations` tool | `applyEdits` on the associations system layer, `useGlobalIds: true`, integer `ASSOCIATIONTYPE` | `canAddAssociation`, `generateAddAssociations`, `generateDeleteAssociations` then `applyEdits` |
@@ -287,7 +288,7 @@ Notes: `GetFeaturesForElements(elements)` converts the result into ObjectID-base
 
 ### 5.2 C#: check state, then validate an extent
 
-Pro 3.7, CoreHost-safe (base method). In an Add-in use `ValidateNetworkTopologyInEditOperation` so the map refreshes and Pro's undo stack gets an entry; its exact overload list was not re-verified here.
+Pro 3.7, CoreHost-safe (base method). In an Add-in use `ValidateNetworkTopologyInEditOperation` so the map refreshes and Pro's undo stack gets an entry; its overloads per ProConcepts are `(UtilityNetwork)`, `(UtilityNetwork, Geometry)`, `(UtilityNetwork, Geometry, ServiceSynchronizationType)`, `(UtilityNetwork, IEnumerable<Selection>)` and `(UtilityNetwork, IEnumerable<Selection>, ServiceSynchronizationType)`; none takes `ValidationType`.
 
 ```csharp
 using ArcGIS.Core.Data.UtilityNetwork;
@@ -355,7 +356,7 @@ except arcpy.ExecuteError:
     raise
 ```
 
-Notes: swap `ALL_SUBNETWORKS_IN_TIER` for `SPECIFIC_SUBNETWORK` and a name (Esri's example 1 uses `"RMT004"` with `CONTINUE_ON_FAILURE`). Tier ordering and scheduling patterns are in `learn/10-performance-scale-and-operations.md` section 11. The `arcpy.un.UtilityNetwork` class does not have an update method; update subnetwork is a tool.
+Notes: the Python signature is `UpdateSubnetwork(in_utility_network, domain_network, tier, {all_subnetworks_in_tier}, {subnetwork_name}, {continue_on_failure}, {condition_barriers}, {function_barriers}, {include_barriers}, {traversability_scope}, {propagators})`; `ALL_SUBNETWORKS_IN_TIER` and `STOP_ON_FAILURE` are the defaults. Swap `ALL_SUBNETWORKS_IN_TIER` for `SPECIFIC_SUBNETWORK` and a name (Esri's example 1 uses `"RMT004"` with `CONTINUE_ON_FAILURE`). Tier ordering and scheduling patterns are in `learn/10-performance-scale-and-operations.md` section 11. The `arcpy.un.UtilityNetwork` class does not have an update method; update subnetwork is a tool.
 
 ### 5.4 REST: trace using a named configuration (async with polling)
 
@@ -449,7 +450,7 @@ const layerInfos = utilityNetwork.getObjectIdsFromElements(result.elements);
 // ...then query/select on the matching layers; global function results are in result.globalFunctionResults.
 ```
 
-Notes: `utilityNetwork.trace()` takes `TraceProperties` (`namedTraceConfigurationGlobalId`, `traceLocations`, `outSpatialReference`, `traceConfiguration`, `resultTypes`, `traceType`) and fills in `gdbVersion` and `moment` from the network object. To trace a named branch version explicitly, use the functional form `trace(url, new TraceParameters({ gdbVersion, ... }))` (`js-api/06-*.md`). Sources for the `TraceLocation` property names are the 5.1 class reference. The exact `resultTypes` shape follows the REST schema; confirm in the `jsonTypes` reference for your SDK version.
+Notes: `utilityNetwork.trace()` takes `TraceProperties` (`namedTraceConfigurationGlobalId`, `traceLocations`, `outSpatialReference`, `traceConfiguration`, `resultTypes`, `traceType`) and fills in `gdbVersion` and `moment` from the network object. To trace a named branch version explicitly, use the functional form `trace(url, new TraceParameters({ gdbVersion, ... }))` (`js-api/06-*.md`). Sources for the `TraceLocation` property names are the 5.1 class reference; its `type` values are `"starting-point"` and `"barrier"`. The exact `resultTypes` shape follows the REST schema; confirm in the `jsonTypes` reference for your SDK version.
 
 ## 6. Common mistakes of developers new to the UN
 

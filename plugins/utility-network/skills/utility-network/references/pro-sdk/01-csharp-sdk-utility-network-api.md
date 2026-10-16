@@ -2,7 +2,7 @@
 *Source: Esri "ProConcepts Utility Network" (GitHub wiki + doc.esri.com SDK conceptdocs),
 Esri "Utility Network Object Model Diagram," arcpy Utility Network module docs*
 
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 **Audience note**: this is for developers extending **ArcGIS Pro itself** via a
 C# Add-in (or CoreHost app) — a different audience from REST/JS web developers.
@@ -76,7 +76,7 @@ the methods people actually reach for):
 | `GetExtent()` | Envelope covering the maximum extent of the stored data (`UtilityNetworkDefinition.GetServiceTerritoryEnvelope()` returns the same extent). |
 | `GetServerCapabilities()` → `UtilityNetworkServerCapabilities` | What the backing service supports (relevant when the UN is service-backed); guard with `AreServerCapabilitiesSupported()`. |
 | `GetState()` → `UtilityNetworkState` | Synchronous snapshot of topology state: `IsNetworkTopologyEnabled`, `HasDirtyAreas`, `HasErrors`, `LastConsistentMoment`, `LastUpdateIsConnectedMoment`. Call on the MCT (`QueuedTask.Run`). |
-| `ValidateNetworkTopology(...)` → `ValidationResult` | Programmatic topology validation. Overloads: `()`, `(Geometry)`, `(Geometry, ServiceSynchronizationType)`, `(Geometry, ServiceSynchronizationType, ValidationType)` and the same three with `IEnumerable<Selection>`. `ValidationType` has `Normal`, `Repair`, `ForceRebuild`. Extension method `ValidateNetworkTopologyInEditOperation` (Add-in only) adds an undo/redo entry and refreshes the map. |
+| `ValidateNetworkTopology(...)` → `ValidationResult` | Programmatic topology validation. Overloads: `()`, `(Geometry)`, `(Geometry, ServiceSynchronizationType)`, `(Geometry, ServiceSynchronizationType, ValidationType)` and the same three with `IEnumerable<Selection>`. `ValidationType` has `Normal`, `Repair`, `ForceRebuild`. Extension method `ValidateNetworkTopologyInEditOperation` (Add-in only; overloads per ProConcepts: `(UtilityNetwork)`, `(UtilityNetwork, Geometry)`, `(UtilityNetwork, Geometry, ServiceSynchronizationType)`, `(UtilityNetwork, IEnumerable<Selection>)`, `(UtilityNetwork, IEnumerable<Selection>, ServiceSynchronizationType)`; none takes `ValidationType`) adds an undo/redo entry and refreshes the map. |
 | `GetCircuitManager()` / `GetUnitIdentifierManager()` / `TraverseAssociations(...)` | Other documented members of the class (circuits, unit identifiers, association traversal). |
 
 **Schema introspection lives on `UtilityNetworkDefinition`** (obtained via `utilityNetwork.GetDefinition()`), not on `UtilityNetwork` itself: `GetNetworkSources()`, `GetRules()`, `GetTerminalConfigurations()`, `GetSchemaVersion()` (returns a string), `GetServiceTerritoryEnvelope()`. These mirror the arcpy `Describe` properties covered in the Pro Help reference.

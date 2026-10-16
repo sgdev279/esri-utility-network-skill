@@ -3,7 +3,7 @@
 references/core/networks/UtilityNetwork, references/core/networks/UnitIdentifierManager,
 arcgis-utility-network-validate-network-topology / -validate-topology / -associations components*
 
-> Last reviewed: 2026-10-12 (JS SDK 5.1 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-16 (JS SDK 5.1 / Enterprise 12.1 / UN dataset v8)
 
 **Version baseline / deprecation status (5.1):** the imperative widgets
 `UtilityNetworkValidateTopology` and `UtilityNetworkAssociations` are
@@ -154,13 +154,13 @@ validation operations where you want job-style progress tracking rather than
 awaiting a single synchronous call, matching the REST API's
 synchronous-vs-asynchronous validate option. This is the JS-side counterpart
 to the REST `async=true`/`statusUrl` polling pattern
-(`rest-api/06-asynchronous-operations-job-status.md`) and the C# SDK's
-`Job<T>`/`UtilityNetworkValidationJob` model
-(`pro-sdk/01-csharp-sdk-utility-network-api.md`) — all three represent the
-same underlying server-side async job, just surfaced idiomatically per
-platform. Unlike the C# job object, `submitTopologyValidationJob`'s returned
-promise/info object does not require a separate explicit "start" call — the
-JS API submits it as part of the call itself.
+(`rest-api/06-asynchronous-operations-job-status.md`). The Pro SDK (C#) has no
+job model: it chooses the sync or async endpoint with `ServiceSynchronizationType`
+and the call returns when the work is done (`pro-sdk/01-csharp-sdk-utility-network-api.md`).
+A `Job<T>`-style object with an explicit start belongs to the ArcGIS Maps SDK for
+.NET, not the Pro SDK. Unlike that .NET job, `submitTopologyValidationJob`'s returned
+promise/info object does not require a separate explicit "start" call: the JS API
+submits it as part of the call itself.
 **Note**: `UtilityNetwork` also has **`submitTraceJob(props)`** (since 4.27,
 returns `Promise<TraceJobInfo>`) alongside `trace()`. No dedicated JS job
 methods were found for `updateSubnetwork`/`exportSubnetwork` — for those, the
