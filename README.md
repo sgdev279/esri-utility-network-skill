@@ -17,7 +17,7 @@
 
 Utility Network questions are hard for general-purpose AI: the answer depends on the dataset version, the deployment, which API you're in, and a long list of ordering rules and gotchas. This project packages that knowledge as a Claude Agent Skill so an agent answers like an experienced UN implementer.
 
-The skill is 29 curated reference files, answer templates, helper scripts and evals. It works in Claude.ai, Claude Code and any agent that reads Agent Skills.
+The skill is 43 curated reference files, including 14 in-depth Learn files that teach how the Utility Network works, answer templates, helper scripts and evals. It works in Claude.ai, Claude Code and any agent that reads Agent Skills.
 
 ## See it in action
 
@@ -75,7 +75,7 @@ Every answer follows a defined format (how-to, troubleshooting, code, concept, c
 ```mermaid
 flowchart LR
     Q[User question] --> S[SKILL.md<br/>workflow · disambiguation · answer formats]
-    S -->|loads only what's needed| R[(references/<br/>pro-help · rest-api · js-api<br/>pro-sdk · arcpy)]
+    S -->|loads only what's needed| R[(references/<br/>learn · pro-help · rest-api · js-api<br/>pro-sdk · arcpy)]
     S -->|runs instead of guessing| T[scripts/<br/>status decoder · association codes<br/>trace request checker]
     S --> A[Structured answer<br/>with version caveats]
 ```
@@ -97,7 +97,7 @@ Details in [CONTRIBUTING.md](CONTRIBUTING.md). Planned content is tracked in the
 ```
 plugins/utility-network/skills/utility-network/   the skill
   SKILL.md                                         entry point: workflow, routing, answer formats
-  references/                                      topic files (pro-help, rest-api, js-api, pro-sdk, arcpy …)
+  references/                                      topic files (learn, pro-help, rest-api, js-api, pro-sdk, arcpy …)
   scripts/                                         helper scripts
   evals/                                           test prompts and trigger tests
 tests/                                             tests for the helper scripts

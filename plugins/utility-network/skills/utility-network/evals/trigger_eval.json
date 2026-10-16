@@ -78,5 +78,25 @@
   {
     "query": "how do I set up a Trace Network in ArcGIS Pro and migrate my old trace network rules",
     "should_trigger": false
+  },
+  {
+    "query": "can you walk me through how the utility network works end to end, i'm new to it",
+    "should_trigger": true
+  },
+  {
+    "query": "what's the difference between a tier and a subnetwork in the utility network",
+    "should_trigger": true
+  },
+  {
+    "query": "which API should i use for utility network: pro sdk, arcpy or rest?",
+    "should_trigger": true
+  },
+  {
+    "query": "glossary of utility network terms: asset group vs asset type, controller vs source",
+    "should_trigger": true
+  },
+  {
+    "query": "explain how a geometric network flow trace works in ArcMap",
+    "should_trigger": false
   }
 ]

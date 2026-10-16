@@ -264,6 +264,115 @@
         "Says exportAcknowledgement requires the DEFAULT version",
         "Explains exporting a subnetwork whose controllers are all logically deleted physically deletes its row and creates no JSON file"
       ]
+    },
+    {
+      "id": 21,
+      "name": "explain-ut-from-scratch",
+      "prompt": "I'm new to the utility network. Explain how it actually works - what happens from the moment someone edits a device to the moment a trace is right?",
+      "files": [],
+      "expected_output": "Teaches the stored vs computed model and the edit lifecycle (edit, dirty area, validate, subnetwork update, trace).",
+      "assertions": [
+        "Explains that connectivity is stored as logical connectivity/associations and the network topology is a computed index built by Validate",
+        "Describes dirty areas created by edits and cleared by Validate Network Topology",
+        "Says subnetworks are updated separately (Update Subnetwork) and that trace results depend on the topology being validated",
+        "Distinguishes edits from error-only dirty areas (Status 8/16/32) which Validate ignores"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "rules-default-deny",
+      "prompt": "Editors can't connect a new device to a line: 'no rule exists'. Do we just need to import more rules, and what exactly does the engine check?",
+      "files": [],
+      "expected_output": "Explains default-deny rule model, rule keying and how to fix.",
+      "assertions": [
+        "Explains the UN is default-deny: a connection or containment without a matching rule is rejected",
+        "Explains rules are keyed by asset group/type (and terminals where relevant) and checked at edit/validate time",
+        "Suggests checking the asset type is correct before adding rules, and using Add Rule / Import Rules"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "network-attribute-bits",
+      "prompt": "We want 40 new in-line network attributes for a water network. Any limit we should know about?",
+      "files": [],
+      "expected_output": "In-line attribute bit budget, nothing invented.",
+      "assertions": [
+        "Explains In Line network attributes share a bit budget and states the figure only as Esri documents it (25 bits user-defined of 64)",
+        "Notes that attribute size (bits) depends on the domain/data type and sequential coded values from 0",
+        "Does not invent a count limit that Esri does not state"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "partitioned-vs-hierarchical",
+      "prompt": "How do we choose between a partitioned and a hierarchical domain network, and can we change it later?",
+      "files": [],
+      "expected_output": "Explains the choice and its permanence.",
+      "assertions": [
+        "Explains partitioned tiers (disjoint, a feature belongs to one) versus hierarchical (a feature may belong to several levels)",
+        "States the choice is made when the domain network is added and cannot be changed later (or says to verify)",
+        "Mentions tier ranks and subnetwork controllers"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "trace-too-wide",
+      "prompt": "My upstream trace returns the whole network. Why and what do I tune?",
+      "files": [],
+      "expected_output": "Trace diagnosis via traversability, barriers, flow direction.",
+      "assertions": [
+        "Checks flow direction (controllers, digitized direction, indeterminate flow) and starting point terminal",
+        "Mentions condition barriers, filter barriers and traversability scope",
+        "Mentions that containers/structures or output filters change what comes back"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "pro-build-order",
+      "prompt": "What's the order of geoprocessing steps to build a utility network by hand in Pro, and who has to be connected as the owner for each?",
+      "files": [],
+      "expected_output": "Ordered build flow with owner connection per step.",
+      "assertions": [
+        "Gives the order: create utility network, add domain network(s), add tiers, rules/terminal configurations/network attributes/categories, enable network topology, load data, validate, controllers, update subnetwork",
+        "States that enable/disable topology need both the database owner connection and the portal owner, while Validate and Update Subnetwork need neither",
+        "Notes dataset version must be chosen explicitly (v8) at Pro 3.7 / Enterprise 12.1"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "which-api-for-addin",
+      "prompt": "We need to automate nightly validate and update subnetwork on Enterprise and also build a Pro add-in. Which API for each?",
+      "files": [],
+      "expected_output": "API decision per surface.",
+      "assertions": [
+        "Recommends arcpy.un (GP tools) or REST for unattended nightly jobs and the Pro SDK for the add-in",
+        "Does not offer the ArcGIS API for Python for utility network operations",
+        "Mentions Pro SDK calls run on the MCT via QueuedTask"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "versions-two-editors",
+      "prompt": "Two editors worked in named versions and both posted. What do we need to redo on DEFAULT before the data is trustworthy?",
+      "files": [],
+      "expected_output": "Post-reconcile steps.",
+      "assertions": [
+        "Says to validate network topology on DEFAULT and then update subnetworks, because named-version work may not be authoritative",
+        "Notes the reconcile exclusive lock and sessionId behaviour at the Enterprise version in use or says to verify",
+        "Mentions checking errors/dirty areas after the post"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "status-bits-learning",
+      "prompt": "What's the difference between Status, error code and error ID in the dirty areas table?",
+      "files": [],
+      "expected_output": "Disambiguates three similar concepts.",
+      "assertions": [
+        "Explains Status is a bitmask (1/2/4 edit, 8/16/32 error), error code is a separate field, and error ID is Esri's catalogue number",
+        "States Esri does not map error IDs to Status bits",
+        "Says to read the Dirty Areas attribute table for Status and error code"
+      ]
     }
   ]
 }

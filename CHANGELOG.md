@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.0 — Learn layer: the Utility Network fundamentals
+A new `references/learn/` layer teaches how the Utility Network works (domain-neutral; gas, water, electric and telecom guides follow in later releases). Every file is paraphrased from current Esri documentation (Pro 3.7, Enterprise 12.1, UN dataset v8, JS SDK 5.1), carries a Last reviewed date and a Sources list, and was fact-checked by a reviewer who did not write it.
+- `learn/01` mental model and the life of an edit; `02` data model; `03` topology engine, dirty areas and validation; `04` rules and connectivity design; `05` network attributes, categories and attribute rules; `06` tiers and subnetworks; `07` tracing in depth with a configuration library; `08` versioning and editing workflows; `09` failure anatomy with an error-code catalogue; `10` performance, scale and operations; `11` ten worked end-to-end scenarios; `12` glossary (about 140 terms), concept map and learning paths; `13` ArcGIS Pro fundamentals and the ordered build flow with owner and license per step; `14` developer surfaces and Pro SDK fundamentals with worked snippets.
+- SKILL.md routes "how does X work" questions to `learn/` first and lists all new files.
+- Reconciled older files after review: telecom policy tools (two tools, not one), Create Utility Network version option 8, owner lists, `arcpy.un.UpdateSubnetwork` signature and a 55-tool coverage list, `submitTopologyValidationJob` / `Job<T>` attribution, `supportsDifferencesFromMoment`.
+- 9 new learn-layer evals (ids 21 to 29) and 5 trigger queries.
+- Items Esri docs could not confirm remain marked "Verify against the Esri docs for your version".
+
 ## 2.3.0 — 2026-10-12
 Accuracy release. Every correction below was checked against current Esri documentation (Pro 3.7, Enterprise 12.1, UN dataset v8, JS SDK 5.1); items that could not be verified are marked "Verify against the Esri docs for your version".
 
