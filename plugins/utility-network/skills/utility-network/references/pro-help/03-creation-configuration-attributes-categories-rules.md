@@ -1,7 +1,7 @@
 # Utility Network — Creation, Configuration, Attributes, Categories & Rules (Deep Reference)
 *Source: ArcGIS Pro Help + Tool Reference, "Utility Network" book*
 
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 ## Create a utility network
 
@@ -15,11 +15,14 @@ alongside it, since the structure network is shared infrastructure).
   **service territory** feature class — its extent defines the network's spatial
   extent. Must live in the same input feature dataset (and use the dataset's
   spatial reference).
-- For enterprise deployments: the **Version** parameter offers Compatible
-  (default), Current, 7, 6 and 5. Compatible creates the latest version
-  compatible with the current Pro and Enterprise releases (single-user: follows
-  Pro; enterprise: follows the federated ArcGIS Enterprise release). ArcGIS
-  Server must be federated with Portal for ArcGIS.
+- The **Utility Network Version** parameter offers Compatible (default),
+  Current, 8, 7, 6 and 5. Compatible creates the latest version compatible with
+  the current deployment (single-user: follows Pro; enterprise: follows the
+  federated ArcGIS Enterprise release). Current creates the latest version
+  compatible with the current Pro release. Esri's dataset administration page
+  states that at Pro 3.7 / Enterprise 12.1 both Compatible and Current still
+  create version 7 and that version 8 (mainly for telecom domain networks) must
+  be chosen explicitly. ArcGIS Server must be federated with Portal for ArcGIS.
 - Enterprise geodatabase: the connection must be a database-authenticated user.
   The owner cannot be an operating-system-authenticated user, a database
   administrator, or the geodatabase administrator account. Minimum geodatabase
@@ -166,7 +169,7 @@ which features are considered.
 - **System-provided categories** exist by default per network type and
   **cannot be deleted** (only optionally assigned):
   - Traditional domain network: **Subnetwork Controller**, **Subnetwork Tap**,
-    **Attribute Substitution** and **Propagator Resetter** (UN v8).
+    **Attribute Substitution** and **Propagator Resetter** (UN version introduced: verify against the Esri docs for your version).
   - Telecom domain network: **Circuit Location**, **Conflict Container**,
     **Mux/Demux**, **Connector Junction**, **Splitter**, **Edge Unit
     Container**, **Junction Unit Container** and **Unit Identifiable**.
@@ -240,6 +243,9 @@ fixed by editing feature data alone.
 ## Sources
 
 - https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/create-utility-network.htm
+- https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/create-utility-network.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/utility-network-dataset-administration.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/about-network-categories.html
 - https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/create-a-utility-network.html
 - https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/network-attributes.html
 - https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/add-network-attribute.htm

@@ -2,7 +2,7 @@
 *Source: doc.esri.com/en/arcgis-pro/latest/arcpy/ (get-started + arcpy.un module docs,
 UtilityNetwork class reference)*
 
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 **Audience note**: this is for **Python scripting inside ArcGIS Pro**
 (standalone scripts, the Python window, model builder script tools) — a
@@ -48,9 +48,72 @@ is listed as **both**:
 **ArcGIS Pro Standard or Advanced** license. For an **enterprise deployment**,
 creating, publishing, or editing also needs the portal account to hold the
 **ArcGIS Advanced Editing user type extension**; query and trace do not.
-From Enterprise 11.2 the old separate Utility Network, Trace Network and Parcel
-Fabric extensions are consolidated into Advanced Editing; older material that
-names a separate "Utility Network extension" (through 11.1) is out of date.
+The old separate Utility Network, Trace Network and Parcel Fabric extensions
+(Enterprise 11.1 and earlier) are consolidated into Advanced Editing; older
+material that names a separate "Utility Network extension" is out of date.
+
+## Tool coverage: the 55 `arcpy.un` tools (Pro 3.7)
+
+Esri's toolbox overview pages list **55** tools: 8 directly in the toolbox, 40 in
+Administration, 4 in Trace Configuration and 3 in Migration. Older notes citing
+43 tools are out of date. Call each as `arcpy.un.<NameWithoutSpaces>`.
+
+- **Toolbox (8):** Add Trace Locations, Export Circuits, Export Subnetwork, Trace,
+  Update Is Connected, Update Subnetwork, Validate Network Topology, Verify Circuits.
+- **Administration (40):** Add Color Scheme, Add Color Set, Add Domain Network,
+  Add Network Attribute, Add Network Category, Add Rule, Add Telecom Domain
+  Network, Add Terminal Configuration, Add Tier, Add Tier Group, Add Wavelength
+  Scheme, Calculate Cluster Keys, Create Utility Network, Delete Color Scheme,
+  Delete Network Category, Delete Rule, Delete Terminal Configuration, Disable
+  Network Topology, Enable Cluster Keys, Enable Network Topology, Export
+  Associations, Export Circuit Definitions, Export Rules, Export Subnetwork
+  Controllers, Import Associations, Import Circuit Definitions, Import Rules,
+  Import Subnetwork Controllers, Rebuild Network Topology, Repair Network
+  Topology, Set Association Role, Set Circuit Properties, Set Edge Connectivity,
+  Set Network Attribute, Set Network Category, Set Subnetwork Definition, Set
+  Telecom Object Combine Policy, Set Telecom Object Divide Policy, Set Terminal
+  Configuration, Verify Network Topology.
+- **Trace Configuration (4):** Add Trace Configuration, Delete Trace
+  Configuration, Export Trace Configurations, Import Trace Configurations.
+- **Migration (3):** Analyze Network Data, Apply Error Resolutions, Migrate To
+  Utility Network.
+
+Other tools used with a UN live elsewhere (Upgrade Dataset and Update Portal
+Dataset Owner in Data Management; diagram tools in `arcpy.nd`; Package toolbox
+tools from Esri Solutions). Keyword names for most tools are on each tool page's
+Python tab; verify against the Esri docs for your version before scripting.
+
+### `arcpy.un.UpdateSubnetwork` (documented signature)
+
+Parameter order per the tool page (the page's syntax block does not print
+literal defaults; the keyword table marks the defaults):
+
+```python
+arcpy.un.UpdateSubnetwork(
+    in_utility_network, domain_network, tier,
+    {all_subnetworks_in_tier}, {subnetwork_name}, {continue_on_failure},
+    {condition_barriers}, {function_barriers}, {include_barriers},
+    {traversability_scope}, {propagators})
+```
+
+| Keyword | Values (default first) |
+|---|---|
+| `all_subnetworks_in_tier` | `ALL_SUBNETWORKS_IN_TIER` (default per the Python table, although the dialog box check box is unchecked by default), `SPECIFIC_SUBNETWORK` (uses `subnetwork_name`) |
+| `continue_on_failure` | `STOP_ON_FAILURE` (default), `CONTINUE_ON_FAILURE` |
+| `include_barriers` | `INCLUDE_BARRIERS` (default), `EXCLUDE_BARRIERS` |
+| `traversability_scope` | `BOTH_JUNCTIONS_AND_EDGES` (default), `JUNCTIONS_ONLY`, `EDGES_ONLY` (dialog label: Apply Traversability To) |
+| `condition_barriers`, `function_barriers`, `propagators` | Value tables, Python only |
+
+Esri's examples update one subnetwork with `SPECIFIC_SUBNETWORK` plus
+`CONTINUE_ON_FAILURE`, and a whole tier with `ALL_SUBNETWORKS_IN_TIER`. The
+input must be a utility network service in an enterprise deployment, topology
+must be enabled, edits saved, and traditional domain networks only. Dialog and
+help-topic behaviour: a single subnetwork runs synchronously (about 10-minute
+time-out), all subnetworks in a tier run asynchronously on the
+`UtilityNetworkTools` service (about 120-minute time-out); Continue on failure
+applies only to the all-in-tier option. Pass `SPECIFIC_SUBNETWORK` explicitly
+when you mean one subnetwork. Verify the exact defaults against the Python tab
+for your version.
 
 ## The `arcpy.un.UtilityNetwork` class (lower-level, non-GP API)
 
@@ -68,7 +131,7 @@ Full method list (confirmed against the Pro 3.7 class reference):
 | `AddStructuralAttachmentAssociation(structure_table, structure_global_id, attachment_table, attachment_global_id)` | Structural attachment | OBJECTID |
 | `DeleteConnectivityAssociation(association_type, association_global_id)` | Remove connectivity | — |
 | `DeleteContainmentAssociation(association_global_id)` | Remove containment | — |
-| `DeleteStructualAttachmentAssociation(association_global_id)` | Remove attachment — **note Esri's documented spelling "Structual"; call it exactly as spelled** | — |
+| `DeleteStructualAttachmentAssociation(association_global_id)` | Remove attachment — **note Esri's documented spelling "Structual"; call it exactly as spelled (Esri's sample code uses the correct spelling `Structural`, which may fail; verify on your Pro version)** | — |
 | `EnableSubnetworkController(table, global_id, terminal_name, subnetwork_controller_name, subnetwork_name, tier_name, description, notes)` | Make a device/junction terminal a subnetwork controller | OBJECTID of new Subnetworks row |
 | `DisableSubnetworkController(table, global_id, terminal_name)` | Remove controller role | — |
 | `HasValidNetworkTopology()` | Is topology enabled | bool |
@@ -168,7 +231,13 @@ request — pair it with the field-level detail already captured in the
 ## Sources
 
 - https://pro.arcgis.com/en/pro-app/3.6/arcpy/utility-network/utilitynetwork.htm (arcpy.un.UtilityNetwork class: methods and association_type codes)
-- https://pro.arcgis.com/en/pro-app/tool-reference/utility-networks/flisting.htm (Utility Network toolbox tool list)
+- https://pro.arcgis.com/en/pro-app/tool-reference/utility-networks/flisting.htm (Utility Network toolbox tool list; older listing)
+- https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/an-overview-of-the-utility-network-toolbox.html
+- https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/an-overview-of-the-administration-toolset.html
+- https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/an-overview-of-the-trace-configuration-toolset.html
+- https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/an-overview-of-the-migration-toolset.html
+- https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/update-subnetwork.htm (Python syntax and keywords)
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/update-a-subnetwork.html
 - https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/set-a-subnetwork-controller.html ("Set a subnetwork controller" help topic; uses the `EnableSubnetworkController` method)
 - https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/import-subnetwork-controllers.htm
 - https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/export-subnetwork-controllers.htm

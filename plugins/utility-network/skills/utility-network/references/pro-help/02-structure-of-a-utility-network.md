@@ -1,6 +1,8 @@
 # Utility Network — Structure of a Utility Network (Deep Reference)
 *Source: ArcGIS Pro Help, "Utility Network" book — "Structure of a utility network" section*
 
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+
 This file goes one level deeper than `01-core-concepts-and-vocabulary.md`: exact
 field names, geoprocessing tool signatures, and Python samples so Claude can
 actually write configuration scripts and explain edge cases, not just describe
@@ -77,9 +79,12 @@ utility network).
   policy** on telecom objects — e.g., a fiber cable "divides" into individual
   strands at a splice point and strands "combine" back into a cable — a pattern
   that doesn't exist in traditional (electric/gas/water) domain networks.
-- Configured via the **Set telecom object divide and combine policy** tool
-  (listed in the Pro Help TOC; a traditional-network-only concept does not apply
-  here).
+- Configured with **two** tools, not one: **Set Telecom Object Combine Policy**
+  (how attribute values are handled when grouped telecom junctions and edges are
+  combined) and **Set Telecom Object Divide Policy** (the same when they are
+  divided). Per Esri's "Network topology actions" table both can run with
+  topology enabled or disabled, default version only, both owners, database
+  connection. Add the domain network itself with **Add Telecom Domain Network**.
 
 ## Utility feature classification (deep dive)
 
@@ -276,3 +281,13 @@ feature attributes.
     tiers at once, validation must consider *every* tier that has subnetworks —
     inherently more expensive, and cost scales with the number of tiers and
     subnetwork size.
+
+## Sources
+
+- https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/an-overview-of-the-administration-toolset.html (Set Telecom Object Combine Policy / Set Telecom Object Divide Policy are separate tools)
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/network-topology-actions.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/subnetworks-table.html
+- https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/add-terminal-configuration.html
+- https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/set-terminal-configuration.html
+- https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/add-tier.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/set-a-subnetwork-controller.html

@@ -4,7 +4,7 @@
 network"; ArcGIS Enterprise 12.1 "Utility Network services" and "Introduction
 to licensing user type extensions".*
 
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 Covers who is allowed to do what, and what must be true before a utility
 network can be published and used as services. Many "access denied",
@@ -54,9 +54,14 @@ portal account signed in as the portal owner.
   Import / Export Rules; most configuration changes (Add Domain Network, Add
   Tier, Add Network Attribute, Set Network Attribute, Add Rule, Delete Rule,
   Set Association Role, Set Network Category, Set Edge Connectivity, terminal
-  configuration actions, and so on)
-- **Database owner connection:** Import / Export Associations; Import / Export
-  Subnetwork Controllers; Update Portal Dataset Owner
+  configuration actions, Add Telecom Domain Network, Add Color Set / Color
+  Scheme, Delete Color Scheme, Add Wavelength Scheme, Set Circuit Properties,
+  Set Telecom Object Combine / Divide Policy, Modify Terminal Connections, and
+  so on)
+- **Database owner connection only:** Import / Export Associations; Import /
+  Export Subnetwork Controllers; Update Portal Dataset Owner (a DB-owner
+  connection plus a portal sign-in as the current portal owner or a portal
+  administrator)
 - **Portal owner:** Export Subnetwork when run with acknowledgments
 - **Upgrade Dataset** → database owner connection (branch versioning) **and**
   portal owner sign-in (Esri "Utility network dataset administration")
@@ -64,7 +69,12 @@ portal account signed in as the portal owner.
   (see `08-asset-packages-foundations-migration.md`)
 - **No owner connection needed:** Load data, Validate Network Topology, Rebuild
   Network Topology, Update Subnetwork, Export Subnetwork (without
-  acknowledgments), Verify Circuits, and ordinary feature/attribute editing
+  acknowledgments), Verify Circuits, Export Circuits, **Calculate Cluster Keys**
+  and **Enable Cluster Keys** (database connection, default version),
+  **Export / Import Circuit Definitions** (database connection, default
+  version), Add / Delete / Export / Import Trace Configuration, modifying
+  associations, subnetwork controllers and terminal paths through the service,
+  and ordinary feature/attribute editing
 - **Network diagram templates:** adding, altering or deleting diagram templates,
   Import Diagram Template Definitions and similar template/maintenance tasks
   require the network owner; creating, storing and updating diagrams does not

@@ -1,7 +1,7 @@
 # Utility Network: ArcGIS Pro as the Working Surface (Anatomy, Build Flow, Daily Operations, Tool Map)
-*Sources: Esri Pro 3.7 Utility Network help and tool reference (URLs in Sources below). Last reviewed: 2026-10-12.*
+*Sources: Esri Pro 3.7 Utility Network help and tool reference (URLs in Sources below). Last reviewed: 2026-10-16.*
 
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 **Why this matters / when to read this.** Every Utility Network (UN) concept in this skill eventually has to be done by a person clicking in ArcGIS Pro or a script calling `arcpy.un`. This file maps the concepts onto the Pro surface: where each button lives, which geoprocessing (GP) tool does which job, in what order a network is built, and what each role does day to day.
 Read it when someone asks "where do I click", "what do I run first", "why is this tool greyed out", "which tool does X" or "how is a file geodatabase network different". It is domain-neutral: the same flow serves electric, gas, water, wastewater, stormwater and telecom.
@@ -84,7 +84,7 @@ Exact labels from Esri's "Utility Network tab" page:
 | **Subnetwork** | **Find** | Opens the Find Subnetworks pane |
 | | **View** | Opens the Subnetworks table |
 | | **Modify Controller** | Opens the Modify Subnetwork Controller pane |
-| **Telecom Circuits** | **Find Circuits**, **Create Circuit**, **Manage Unit IDs** | Enabled only when a telecom domain network is in the active map |
+| **Telecom Circuits** | **Find Circuits**, **Create Circuit**, **Manage Unit IDs** | Esri states **Manage Unit IDs** (opens the Unit ID Operations pane) is enabled only when the network contains a telecom domain network; for the other two buttons, verify against the Esri docs for your version |
 
 Notes:
 
@@ -95,12 +95,12 @@ Notes:
 ### 1.4 The panes in practice
 
 **Trace pane** (Utility Network tab, Tools group, **Trace**). Tabs **Start**, **Stop**, **Barriers**, plus a **Named Configurations** tab for saved configurations. Key controls: **Add features** (click the map), **Add selected** (use the current selection or attribute-table rows), **Auto Apply** (when unchecked, additions show an asterisk until you click **Apply**), **Delete** and **Clear All**, **Filter Barrier** (Barriers tab), a **Terminal** drop-down for devices with terminals, **First Unit** / **Last Unit** for telecom grouped objects.
-Symbols: starting points green circles, stopping points red hexagons, barriers red Xs; gray until applied when added with Add selected. Each edge supports one starting point, one stopping point and one barrier; extra additions overwrite. **Clear All** also deselects the active named configuration. Traces run from the pane do not go through geoprocessing and do not appear in GP history. The **Tracing** tab of **Network Options** has *Maximum number of starting points and barriers to add at once*, default 10.
+Symbols: starting points green circles, stopping points red hexagons, barriers red Xs; gray until applied when added with Add selected. Each edge supports one starting point, one stopping point and one barrier; extra additions overwrite. **Clear All** also deselects the active named configuration. Esri states that runs from the Named Configurations tab bypass geoprocessing and write no GP history; for other pane traces, verify against the Esri docs for your version. The **Tracing** tab of **Network Options** has *Maximum number of starting points and barriers to add at once*, default 10.
 The trace types and options themselves are in `learn/07-tracing-in-depth-and-configuration-library.md` and `pro-help/05`.
 
 **Modify Subnetwork Controller pane** (Subnetwork group, **Modify Controller**). Pick the device (Select feature tool) or add rows (Add selected), choose **Terminal**, **Tier** (only tiers where this asset type may be a controller), **Subnetwork Controller Name** (unique in the tier) and **Subnetwork Name** (unique in the network; up to 64 characters, cannot start or end with a colon, no double colon), optional **Description** and **Notes**, then **Apply**. Afterwards validate topology and run Update Subnetwork. The Python equivalent is `arcpy.un.UtilityNetwork.EnableSubnetworkController(...)` inside an edit operation (`arcpy/01`).
 
-**Find Subnetworks pane** (Subnetwork group, **Find**). A grid with **Status** (green check clean, yellow warning dirty, red warning invalid) and **Last Update**, a refresh button, quick filters, a filter expression section and a "Use the current map extent" check box (clear it to read the Subnetworks table instead of only subnetworks whose SubnetLine falls in the view). Right-click a subnetwork for Flash, Zoom To, Pan To, Select, Pop-up (when it has SubnetLine geometry), subnetwork trace, update, select controllers and activate. Esri does not give exact menu labels for those last four; check the app. Updates from this pane bypass geoprocessing and write no GP history.
+**Find Subnetworks pane** (Subnetwork group, **Find**). A grid with **Status** (green check clean, yellow warning dirty, red warning invalid) and **Last Update**, a refresh button, quick filters, a filter expression section and a "Use the current map extent" check box (clear it to read the Subnetworks table instead of only subnetworks whose SubnetLine falls in the view). Right-click a subnetwork for Flash, Zoom To, Pan To, Select, Pop-up (when it has SubnetLine geometry), subnetwork trace, update, select controllers and activate. Esri does not give exact menu labels for those last four; check the app. Whether updates from this pane write GP history: verify against the Esri docs for your version.
 
 **Error Inspector pane** (Network Topology group, **Error Inspector**; UN version 4+). The **Source** field fills from the map's UN layer. The **Map Extent** filter is on by default, so errors elsewhere in the network are hidden until you turn it off. The table shows an `Error(s)` text ("10: Invalid connectivity" style). `Status` and `Error code` are **not** in this table; read them from the Dirty Areas attribute table. Selecting a row shows attributes on the **Details** tab. Meaning of the codes: `pro-help/04`, `learn/09`.
 
@@ -116,7 +116,7 @@ Expand the UN layer in Contents:
 | **Dirty Objects** (table) | Edits to nonspatial objects and associations | Exists only with a **telecom** domain network |
 
 Esri's layer-access page names only these two items under the layer. Other system objects (Associations, Subnetworks, Rules, diagram layers, trace configurations) are not shown as sublayers: you reach them through tool panes (Modify Associations, Subnetwork **View**) or by adding the service layer ID by path.
-Examples Esri documents: the Subnetworks table is service layer **500002** (Add Data, From Path, service URL ending in the ID; it appears under **Standalone tables**). Associations is 500001 per the example IDs in `learn/02` section 10; your service's real IDs come from `systemLayers` in the feature service JSON. The Associations table is hidden by default.
+Examples Esri documents: the Subnetworks table is service layer **500002** (Add Data, From Path, service URL ending in the ID; it appears under **Standalone tables**). Associations is 500001 per the example IDs in `learn/02` section 10; your service's real IDs come from `systemLayers` in the feature service JSON. Whether the Associations table is hidden by default: verify against the Esri docs for your version.
 
 Right-click the UN layer, **Properties**, for the layer property tabs.
 
@@ -195,8 +195,8 @@ Legend for the "Needs" column: **Dis** topology disabled; **En** enabled; **Eith
 |---|---|---|---|---|
 | 1 | Create the dataset | **Create Utility Network** | Dis, DEF, DB, Both | Input Feature Dataset, Utility Network Name, Service Territory Feature Class (m- and z-enabled polygon in the same dataset), Utility Network Version (Compatible, Current, 8, 7, 6, 5). Enterprise: database-authenticated, non-admin, non-OS-authenticated user; geodatabase 11.2.0.3.2+ for v7+ |
 | 2 | Add domain networks | **Add Domain Network** (traditional) / **Add Telecom Domain Network** | Dis, DEF, DB, Both | Domain Network Name (prefixes class names), Tier Definition (Hierarchical or Partitioned), Subnetwork Controller Type (Subnetwork source or sink), optional alias. Cannot be deleted later |
-| 3 | Classify features | **Add Subtype**, **Create Domain**, **Add Coded Value To Domain**, **Assign Domain To Field** (Data Management) | Either, DB, Both | `ASSETGROUP` is the subtype field; `ASSETTYPE` is a domain per subtype. Adding/renaming values is allowed enabled or disabled; deleting is not |
-| 4 | Terminal configurations | **Add Terminal Configuration**, then **Set Terminal Configuration** | Dis, DEF, DB, Both | Delete or reassign only **before the first enable**. Pro 3.5+ requires existing rules to be removed from an asset type before it can take a terminal configuration |
+| 3 | Classify features | **Add Subtype**, **Create Domain**, **Add Coded Value To Domain**, **Assign Domain To Field** (Data Management) | Either, DEF, DB, Both | `ASSETGROUP` is the subtype field; `ASSETTYPE` is a domain per subtype. Adding/renaming values is allowed enabled or disabled; deleting is not |
+| 4 | Terminal configurations | **Add Terminal Configuration**, then **Set Terminal Configuration** | Dis, DEF, DB, Both | Delete or reassign only **before the first enable** (Esri: assignment "cannot be changed after the network topology is enabled for the first time"). Whether existing rules must be removed from an asset type first (reported for Pro 3.5+): verify against the Esri docs for your version |
 | 5 | Association roles | **Set Association Role** | Dis, DEF, DB, Both | Container/structure roles, deletion semantics; unassign only before first enable |
 | 6 | Network attributes | **Add Network Attribute**, **Set Network Attribute** | Dis, DEF, DB, Both | Define first, then map to class/field. In Line needs a domain (`learn/05`). Cannot be deleted |
 | 7 | Network categories | **Add Network Category**, **Set Network Category** | Dis, DEF, DB, Both | Set replaces the whole category set for the asset type. The Subnetwork Controller category needs a directional terminal configuration first (partitioned) |
@@ -229,10 +229,10 @@ Legend for the "Needs" column: **Dis** topology disabled; **En** enabled; **Eith
 
 | Owner condition | Steps |
 |---|---|
-| **Both** (database login as owner **and** portal sign-in as owner) | 1 to 10 and 11 (configuration), 14, 17, 21, Repair/Verify Network Topology, Analyze Network Data, Apply Error Resolutions, Import/Export Rules, Modify Terminal Connections, diagram template maintenance |
+| **Both** (database login as owner **and** portal sign-in as owner) | 1 to 10 (including Add Color Set/Scheme, Add Wavelength Scheme, Set Circuit Properties, telecom combine/divide policies), 14, 17, 21, Disable Network Topology, Repair/Verify Network Topology, Analyze Network Data, Apply Error Resolutions, Import/Export Rules, Modify Terminal Connections, diagram template maintenance |
 | **Database owner connection only** | Import/Export Associations, Import/Export Subnetwork Controllers, Update Portal Dataset Owner |
 | **Portal owner only** | Export Subnetwork with *Set export acknowledged* |
-| **No owner** | Load data, Validate, Rebuild, Update Subnetwork, Export Subnetwork without acknowledgment, Verify Circuits, add/delete trace configurations, normal editing |
+| **No owner** | Step 11 (Calculate/Enable Cluster Keys), Load data, Validate, Rebuild, Update Subnetwork, Export Subnetwork without acknowledgment, Verify Circuits, Export Circuits, Export/Import Circuit Definitions, add/delete/export/import trace configurations, normal editing |
 
 Source of truth: Esri "Network topology actions" (table reproduced selectively here; consult it for any tool not listed). `pro-help/10` records the same grouping and the symptom mapping ("tool greyed out" vs "only the owner of the version").
 Note on Apply Asset Package: Esri's published prerequisites are that maps are closed, topology is disabled, Pro matches the dataset version, and for enterprise the database owner, portal owner and DEFAULT apply (`pro-help/08`).
@@ -313,14 +313,14 @@ Admin checklist when a user reports "tool disabled": (1) Is topology in the righ
 ## 4. The tool map
 
 Source: Esri Utility Network toolbox overview and toolset overview pages (Pro 3.7): 8 tools directly in the toolbox, 40 in Administration, 4 in Trace Configuration, 3 in Migration. The Package toolbox (Stage Utility Network, Apply Asset Package, Export Asset Package) is a separate Esri Solutions toolbox (`pro-help/08`). Network diagram tools are `arcpy.nd`, a separate toolbox (`pro-help/07`).
-Parameter names below are the **dialog labels**. Esri's tool pages do not always show the Python signature in the text I read; check the Python tab on the live page for exact keyword names. All tools are available at Standard and Advanced license levels, **not Basic** (Validate Network Topology is "Limited" at Basic for enterprise per its page; treat as not available). Enterprise use also needs Advanced Editing on the portal account for the operations listed in `pro-help/10`.
+Parameter names below are the **dialog labels**. For Python keyword names check the Python tab on the live page; `arcpy.un.UpdateSubnetwork` is documented in `arcpy/01`. All tools are available at Standard and Advanced license levels, **not Basic** (Validate Network Topology is "Limited" at Basic for enterprise per its page; treat as not available). Enterprise use also needs Advanced Editing on the portal account for the operations listed in `pro-help/10`.
 
 ### 4.1 Create and structure
 
 | Tool | One-line meaning | Key parameters | Gotchas |
 |---|---|---|---|
 | **Create Utility Network** | Creates the UN in a feature dataset (with the structure network) | Feature dataset, name, service territory, version | Territory must be m- and z-enabled polygon in the same dataset; extent cannot be changed later |
-| **Add Domain Network** | Adds a traditional domain network | Name, Tier Definition, Subnetwork Controller Type, alias | Topology off; no delete; tier definition and source/sink are permanent choices |
+| **Add Domain Network** | Adds a traditional domain network | Name, Tier Definition, Subnetwork Controller Type, alias | Topology off; no delete; Esri's topology-actions table shows no delete, and no tool to change tier definition or source/sink afterwards (verify against the Esri docs for your version) |
 | **Add Telecom Domain Network** | Adds a telecom domain network | see tool page | Version 8 is the telecom-oriented dataset version; Compatible and Current still create v7, so choose 8 explicitly |
 | **Add Tier Group** | Groups hierarchical tiers | see tool page | Hierarchical definitions only |
 | **Add Tier** | Adds a tier | Domain Network, Name (unique network-wide), Rank (1 highest), Topology Type (Radial/Mesh, no current effect), Tier Group Name, Subnetwork Field Name | Add before loading data; hierarchical tiers force Mesh and require a tier group |
@@ -334,7 +334,7 @@ Parameter names below are the **dialog labels**. Esri's tool pages do not always
 |---|---|---|---|
 | **Add Rule** / **Delete Rule** | Adds or permanently removes a network rule | Rule Type, From/To (and Via) table, group, type, terminals | `Delete Rule` is permanent; topology off, DEFAULT, both owners |
 | **Import Rules** / **Export Rules** | CSV round trip of connectivity, attachment and containment rules | CSV path | Import needs topology disabled and DEFAULT; Export works either state |
-| **Add Terminal Configuration** / **Set Terminal Configuration** / **Delete Terminal Configuration** | Define a terminal layout, assign it to an asset type, delete it | name, directionality, terminals (2 to 8, names up to 32 chars); asset type | Assignment is permanent after first enable. Pro 3.5+ requires rules removed from the asset type first |
+| **Add Terminal Configuration** / **Set Terminal Configuration** / **Delete Terminal Configuration** | Define a terminal layout, assign it to an asset type, delete it | name, directionality, terminals (2 to 8, names up to 32 chars); asset type | Assignment is permanent after first enable. Rules-removal requirement (reported for Pro 3.5+): verify against the Esri docs for your version |
 | **Add Network Attribute** / **Set Network Attribute** | Define a network attribute and map it to a class field | name, data type, In Line, Apportionable, Substitution, Nullable | Cannot delete once defined; In Line bits are limited (`learn/05`) |
 | **Add Network Category** / **Set Network Category** / **Delete Network Category** | Define, assign, delete categories | name; asset type list | Set replaces the whole category set |
 | **Add Color Set**, **Add Color Scheme**, **Delete Color Scheme**, **Add Wavelength Scheme** | Telecom fiber/cable color and wavelength configuration | see tool pages | Delete of color set and wavelength scheme currently not allowed |
@@ -373,10 +373,10 @@ Parameter names below are the **dialog labels**. Esri's tool pages do not always
 |---|---|---|---|
 | **Trace** | Returns features by connectivity or traversability | trace type, starting points, barriers, configuration, result types | See `learn/07`; Path replaces Shortest path at Pro 3.7 / Enterprise 12.1 |
 | **Add Trace Locations** | Builds a feature class of starts, stops and barriers | Output Feature Class, Load Selected Features, Clear Trace Locations, Trace Locations value table (Layer Name, Global ID, Terminal, Percent Along), Filter Barrier | Load Selected and Trace Locations table are mutually exclusive; Percent Along defaults to 0.5 on lines; v7+ allows file, mobile or enterprise output |
-| **Add Trace Configuration** / **Delete Trace Configuration** | Create or delete named configurations | name, description, tags, trace settings | Works in the versioned service; no owner connection; introduced with UN v5 |
+| **Add Trace Configuration** / **Delete Trace Configuration** | Create or delete named configurations | name, description, tags, trace settings | Works in the versioned service; no owner connection; UN version introduced: verify against the Esri docs for your version |
 | **Export Trace Configurations** / **Import Trace Configurations** | JSON round trip | JSON path | Use to move configurations between environments |
 | **Verify Circuits**, **Export Circuits** | Telecom circuit checks and export | see tool pages | Telecom only |
-| **Export Circuit Definitions** / **Import Circuit Definitions** | Telecom circuit tables to/from CSV | see tool pages | DEFAULT, database connection |
+| **Export Circuit Definitions** / **Import Circuit Definitions** | Telecom circuit tables to/from CSV | see tool pages | DEFAULT, database connection, no owner |
 
 ### 4.7 Migration
 
@@ -395,7 +395,7 @@ Parameter names below are the **dialog labels**. Esri's tool pages do not always
 | **Append**, **Rebuild Indexes** | Data Management | Load data; rebuild spatial indexes after big appends |
 | **Apply Asset Package** / **Stage Utility Network** / **Export Asset Package** | Utility Network Package (Esri Solutions) | Foundation deployment and baselines (`pro-help/08`) |
 | Attribute Rules toolset (**Add Attribute Rule**, **Evaluate Rules**, etc.) | Data Management | Calculation, constraint and validation rules (`learn/05`) |
-| **Summarize Utility Network Errors** | Esri Solutions / support tooling | Error summary tables for migrations (`pro-help/11`) |
+| **Summarize Utility Network Errors** | Verify against the Esri docs for your version | Error summary tables for migrations (`pro-help/11`); not one of the 55 toolbox tools |
 
 ### 4.9 Scripting pointers
 
@@ -424,7 +424,7 @@ Parameter names below are the **dialog labels**. Esri's tool pages do not always
 | **DisplayContent display filter** | Layer properties, Display Filters | Manual filter named exactly `DisplayContent` on `associationstatus`: `associationstatus NOT IN (4, 5, 6, 12, 13, 14, 36, 37, 38, 44, 45, 46)`. Without it the Display Content command does nothing |
 | **Geoprocessing environments** | Geoprocessing | Most UN tools "use no geoprocessing environments"; Set Edge Connectivity uses *Current Workspace*; Add Trace Locations uses Current Workspace and Output has Z values |
 | **Tracing: Validate Consistency** | Trace tool | Unchecked by default in Pro; when checked it fails traces touching dirty areas (`learn/03` section 10) |
-| **Pro and dataset version** | Network Properties, General | Pro must be at least the dataset version's floor (v8 needs Pro 3.7 and Enterprise 12.1; `pro-help/09`). Field Maps and Native SDKs do not support v8 |
+| **Pro and dataset version** | Network Properties, General | Pro must be at least the dataset version's floor (v8 needs Pro 3.7 and Enterprise 12.1; `pro-help/09`). Field Maps and Native SDK support for v8: verify against the Esri docs for your version |
 | **Background vs foreground** | Tool/ribbon | Ribbon Validate/Rebuild are synchronous and bounded by the client; GP tools go through the server and survive longer runs |
 | **Save before UN tools** | Edit tab | Update Subnetwork and others require saved edits |
 
@@ -445,10 +445,10 @@ Esri's FAQ: single-user deployments use file or mobile geodatabases and **do not
 | Storage | SQL Server, Oracle, PostgreSQL, SAP HANA | File or mobile geodatabase |
 | Versioning | Branch versioning, named versions, Version Management | None; no reconcile/post |
 | Editing path | Through feature services (after publishing) | Directly in Pro against the geodatabase |
-| Owners | Database owner + portal owner | No portal owner; OS authentication records the creator of trace configurations; any user can modify any configuration |
+| Owners | Database owner + portal owner | No portal owner; OS authentication records the creator of trace configurations; any user can modify and delete all named trace configurations (Esri, About trace configurations) |
 | License | Standard/Advanced plus Advanced Editing for create/publish/edit | Standard/Advanced (no portal) |
 | Services, REST, JS | Utility Network, Network Diagram, Version Management services | None; Pro only |
-| Concurrency | Many readers, one writer on 12.0+; DEFAULT concurrency | One editor at a time on a mobile geodatabase (`.geodatabase-conch` lock file); file geodatabase detail: verify against the Esri docs for your version |
+| Concurrency | Many readers, one writer on 12.0+; DEFAULT concurrency | Mobile and file geodatabase locking/concurrency (one editor at a time, lock files): verify against the Esri docs for your version |
 | Enable topology | Normal enable needs branch versioned; errors-only needs unversioned | Naturally unversioned, so Only generate errors works |
 | Diagram template configuration | Direct database connection, not service | Allowed (file/mobile qualifies) |
 | Update Subnetwork input | Must come from a service | Runs against the geodatabase directly |
@@ -525,8 +525,10 @@ Practitioner flow: design in a single-user copy (fast iteration, no owners), exp
 - https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/about-trace-configurations.html
 - https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/association-visibility.html
 - https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/faq.html
-- https://doc.esri.com/en/arcgis-pro/latest/help/editing/edit-a-utility-network.html
+- https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/create-utility-network.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/about-network-categories.html
 - https://doc.esri.com/en/arcgis-pro/latest/help/data/network-diagrams/network-diagrams-tools-and-commands.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/editing/edit-a-utility-network.html
 - https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/an-overview-of-the-utility-network-toolbox.html
 - https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/an-overview-of-the-administration-toolset.html
 - https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/an-overview-of-the-trace-configuration-toolset.html
