@@ -1,5 +1,5 @@
 # Utility Network: Performance, Scale and Operations (Deep Reference)
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 *Sources: Esri ArcGIS Pro help and tool reference, ArcGIS Enterprise REST reference, Esri Support knowledge-base and bug pages, Esri blogs and Esri Community posts (full list at the end).*
 
@@ -56,11 +56,11 @@ Example (gas): a pressure zone defined with no stopping condition at closed valv
 | Max tiers | At most 63 across all domain networks (`learn/06-tiers-and-subnetworks-in-depth.md`) | Yes (a model limit) |
 | Object ID range | UN dataset v7 uses 64-bit ObjectIDs, "more than 2.14 billion features" possible [Esri blog, 2024 release] | Yes (v7+) |
 | Client time-outs | Most synchronous UN tools 10 minutes (600 s); Update Subnetwork 30 minutes (1,800 s) [Esri FAQ] | Yes (client side) |
-| UtilityNetworkTools time-out | "Longer", preconfigured; FAQ gives no number | No (a blog elsewhere quotes 2 hours; check your server) |
+| UtilityNetworkTools time-out | "Longer", preconfigured; FAQ gives no number | No (Esri states none; check your server) |
 | Service heap for trace results | Default 64 MB; payload estimation formula and sizing table [Esri Support KB 000025326] | Yes |
 | Diagram from a service | Fails above 49,999 features (error 160243) in the Pro 3.3 bug, "As Designed" [Esri Support bug 000168157] | Yes (verify in your release) |
 | Name drop-down in tools | Empty when the tier has 10,000+ Subnetworks rows; type the name [Esri tool pages] | Yes (a UI behaviour, not a data limit) |
-| Path trace defaults | `maxHops` 100, `numPaths` 2 on the REST page; Pro tool page says Num Paths default 1 (see section 6) | Yes |
+| Path trace defaults | `maxHops` 100, `numPaths` 1 on both the REST page and Pro tool page (see section 6) | Yes |
 
 Rule for this skill: when a user asks "how big can X be", answer that Esri does not publish a limit, give the measurement method (section 12), and give Practitioner guidance clearly labelled.
 
@@ -97,7 +97,7 @@ Two read-only `arcpy.Describe(un)` properties exist that bear on volume: `create
 
 ### 4.2 Extent and batching [Esri]
 
-- Validate by extent clips dirty areas to the extent; outside parts stay dirty. Validating the entire extent "can be resource-intensive" [Esri, About network topology].
+- Validate by extent clips dirty areas to the extent; outside parts stay dirty (Esri: a dirty area associated with an error is fully evaluated when partially inside the extent). Validating the entire extent "can be resource-intensive" [Esri, About network topology].
 - Pro's Validate command is synchronous with the client time-out in section 10; the geoprocessing tool is asynchronous through `UtilityNetworkTools` [Esri, Validate tool page].
 - On the DEFAULT version only **one session at a time** can validate (or rebuild). Editing and tracing continue during the run [Esri, Validate and Rebuild tool pages].
 - In REST, `validateNetworkTopology` accepts `validateArea` (envelope), `validationSet` (sourceId plus globalIds), `validationType` (`normal`, `rebuild`, `forceRebuild`), `async` and (11.1+) `outSR` (`rest-api/02-topology-and-subnetwork-management-operations.md`). The completed response reports `dirtyAreaCount`, `validateErrorsCreated`, `discoveredSubnetworks`, so you can measure each run.
@@ -180,7 +180,7 @@ The Esri Community diagnostics post (Jan 2026, Enterprise 12.1 logs) says traver
 | Geometry | Include geometry off by default (Enterprise 11.1+ for JSON types) | `includeGeometry` per result type | Practitioner guidance: ask for geometry only for what you will draw |
 | Synthesize geometries | off by default; Aggregated Geometry (Enterprise 11.3+) and Circuits (12.1+) | `synthesizeGeometries` (11.3+, aggregatedGeometry only) | Infers geometry for edge objects and associations; extra work, off by default |
 | Validate locatability | off by default | `validateLocatability` (default false) | Extra check of containment/attachment/connectivity for traversed features |
-| Path traces | Max Hops (default 100) and Num Paths (Pro page default 1; Enterprise 12.1+) | `maxHops` (default 100; terminals count as two hops), `numPaths` (REST page default 2) | Cap path search; the two defaults differ between pages |
+| Path traces | Max Hops (default 100) and Num Paths (default 1); both need Enterprise 12.1+ | `maxHops` (default 100; terminals count as two hops), `numPaths` (REST page default 1) | Cap path search; Esri REST and Pro pages agree on defaults (checked 2026-10-16) |
 | Filter by nearest | count within a cost measure | `nearestNeighbor` in the configuration schema (`rest-api/08-...`) | Limits results to a count |
 | Async | Trace tool async for enterprise (synchronous is default) | `async=true` (10.9.1+); capability flag `supportsAsyncTrace` | Avoids time-out, not cost |
 | Named configurations | Trace pane Named Configurations tab | `traceConfigurationGlobalId` (10.9+) | Pro 3.2 runs Named Configurations without the GP framework, which can speed them up [Esri blog, 2024 release] |
@@ -423,7 +423,7 @@ Compatibility matrix and procedure are in `pro-help/09-dataset-versions-compatib
 |---|---|---|
 | v4 | Nonunique index on `SUBNETWORKNAME` and `SUBNETWORKCONTROLLERNAME` in the Subnetworks table; named-version dirty areas truncated and must be regenerated (enable topology, reconcile named versions) | Esri upgrade history |
 | v6 | `ASSOCIATIONTYPE` becomes a subtype field, improving diagram display and association editing | same |
-| v7 | 64-bit ObjectIDs (more than 2.14 billion features possible); big integer fields; **indexes on all UN tables are dropped and re-created, so the upgrade can take noticeably longer**; irreversible; requires enterprise geodatabase 11.2.0+ | Esri upgrade history; 2024 release blog |
+| v7 | 64-bit ObjectIDs (more than 2.14 billion features possible); big integer fields; **indexes on all UN tables are dropped and re-created, so the upgrade can take noticeably longer**; Esri's page does not say whether it is reversible (treat as irreversible and back up); requires enterprise geodatabase 11.2.0+ | Esri upgrade history; 2024 release blog |
 | v8 | System-maintained `PARTITIONID` added to domain and structure network classes "to support future tracing and network management improvements"; no direct performance effect described today; only needed for propagation resetters or telecom domain networks | Esri upgrade history |
 
 Upgrade Dataset: backup first; the tool's Utility Network Version parameter defaults to "Compatible" (the newest version your Pro/Enterprise supports), and you can pick a specific version from 5 to 8 [Esri tool page]. In enterprise the version follows the Enterprise release, and the tool checks federated servers in multimachine deployments. The tool page I read does not mention duration, irreversibility or the exclusive lock for UN; the procedure in `pro-help/09-...` (exclusive lock, topology disabled, owners) comes from the Pro help topic. Plan a rehearsal on a copy and measure index rebuild time for v7, then run Analyze Datasets afterwards (Practitioner guidance).

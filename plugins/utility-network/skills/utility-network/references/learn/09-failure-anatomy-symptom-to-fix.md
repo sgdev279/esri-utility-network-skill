@@ -1,5 +1,5 @@
 # Utility Network: Failure Anatomy, Symptom to Fix
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 *Sources: Esri ArcGIS Pro 3.7 help (About error features, View errors, FAQ, Update Subnetwork, Verify Network Topology, Import Associations, Upgrade Dataset, Publishing), Esri tool-error pages, Esri Support articles and bug records, Esri electric and gas blogs (full list at the end).*
 
@@ -190,7 +190,8 @@ Also note: error 9 and 36 messages carry extra detail (`RuleID(s)`, "Invalid" in
 ### 2.5 Decoding `Status` and `Error code`
 
 - `Status` bit values: 1 insert/update, 2 delete, 4 modified objects, 8 feature error, 16 object error, 32 subnetwork error; 0 = topology disabled.
-- `Error code` is also a bitmask (Esri Support KB): 0 means no error; **the error ID is log2 of the value**. Example from Esri: 256 = 2^8, so error ID 8 (no connectivity rule). Several errors on one dirty area add their bits.
+- `Error code` is also a bitmask (Esri Support KB): 0 means no error; **the error ID is log2 of the value**. Example from Esri: 256 = 2^8, so error ID 8 (no connectivity rule). Several errors on one dirty area add their bits (inference: Esri's KB shows only the single-bit example).
+- Esri's KB covers only single-bit values; it does not explain combined values, so reading several bits is Practitioner guidance (standard bitmask logic).
 - Practitioner guidance: this implies bit n of `Error code` equals error ID n. `ERRORCODE` was widened from double to big integer at UN v7 (existing upgrade reference). Esri does not state the reason; scripts that read it as a float break (section 9).
 - Sanity check on a query: take the value, loop over bit positions 0 to 47, list those set, then look each up in 2.1 and 2.2.
 
@@ -260,7 +261,7 @@ The most complete list is `learn/07-tracing-in-depth-and-configuration-library.m
 | **Slow** | Large subnetwork-based traces, function/propagator cost, huge result geometry, missing validate backlog | Time with simpler config; fewer result types | `learn/07` section 17 |
 | **Differs between Pro and REST** | 1) Stored trace type wins over the request; 2) tier defaults not applied by REST (you must send them); 3) `percentAlong` -1 on a line; 4) different `gdbVersion`/moment; 5) unsaved Pro edits | Compare JSON from `traceConfigurations/query`; send only `traceConfigurationGlobalId` | Pass the named configuration by GlobalID; align versions |
 | **Differs between users** | Different versions or unsaved edits (a trace reads saved state) | Compare `gdbVersion`, moment | Align |
-| **Works yesterday, broken after Foundation update** | Renamed attributes or categories in configs | Read the configuration JSON | Update names (gas: Lifecycle Status renamed Asset Lifecycle Status and Asset State added in Foundation 4.0; water: Lifecycle Status renamed Asset State, Construction Status network attribute removed in the Mar 2026 Foundation, per industry files) |
+| **Works yesterday, broken after Foundation update** | Renamed attributes or categories in configs | Read the configuration JSON | Update names (gas: Lifecycle Status renamed Asset Lifecycle Status and Asset State added in Foundation 4.0; water: Lifecycle Status renamed Asset State, Construction Status network attribute removed in the Mar 2026 Foundation; Practitioner guidance from Foundation release notes, not re-verified here, check your Foundation version) |
 
 REST `error` body: `extendedCode`, `message`, `details` (`rest-api/01-utility-network-server-and-trace.md`). A trace on a version under an exclusive lock needs the holder's `sessionId`. Named trace configurations need UN v5+.
 
@@ -294,7 +295,7 @@ Mechanism and design: `learn/04-rules-and-connectivity-design.md` (troubleshooti
 | Content has two containers | A point cannot be content of more than one container (Esri) | Associations table | Remove one |
 | Nonspatial object conflict shows no features | Unlocatable object (no containment/attachment): Conflict Display empty and a banner says so (Esri FAQ) | Banner | Add the association |
 | `ASSOCIATIONSTATUS` out of sync | Legacy or script-edited data (`SummarizeUNErrors` community tool reports it) | Run audit | Verify against Esri docs; repair via supported edit |
-| Unexpected association conflicts in named versions after post | BUG-000141682 (found UN v4; fixed in Pro 3.6 and Enterprise 12.0) | Versions | Update; no workaround listed |
+| Unexpected association conflicts in named versions after post | BUG-000141682 (found UN v4; Esri lists it fixed in Pro 3.6; Enterprise fix version not confirmed) | Versions | Update; no workaround listed |
 
 ---
 
@@ -359,7 +360,7 @@ Never edit the published network directly through a database connection; after p
 |---|---|---|
 | **Thousands of errors on first enable** | 1) Data quality: not snapped, self-intersections, multipart, stacked points, missing junctions; 2) rule gaps (8/9/10); 3) unclassified subtypes (2/23) | Pre-load quality rules; **Analyze Network Data** + **Apply Error Resolutions** on a nonversioned network (migration-era pair); triage by ID, not feature by feature (`learn/03`) |
 | Enable stops at the cap | Maximum number of errors 10000 default | Fix systematic errors, rerun; do not raise the cap above 10000 |
-| Esri guidance: error counts above ~10,000 hurt performance | Esri 2019 paper (dated; rules still apply) | Aim near zero before versioning; enable branch versioning after topology validates |
+| Error counts above ~10,000 hurt performance | Practitioner guidance (older Esri material, not re-verified); Esri's only stated number is the Enable Network Topology default cap of 10,000, which it advises against raising | Aim near zero before versioning; enable branch versioning after topology validates |
 | Errors 'feature outside extent' | No service territory | Create it first (`pro-help/11-migration-and-schema-mapping.md`) |
 | Associations/attachments silently dropped | Source relationships/attachments lacked Global IDs | Add Global IDs before load |
 | Unmapped fields | Alias names used in the mapping sheet | Use field names |
@@ -380,7 +381,7 @@ Practitioner guidance: load into a file geodatabase asset package for fast itera
 |---|---|---|---|
 | **Pro can't open the network** | Dataset version newer than the Pro minimum (v7 needs Pro 3.3+, v8 Pro 3.7) | Describe `schemaGeneration`; matrix in `pro-help/09-dataset-versions-compatibility-upgrade.md` | Upgrade Pro, or open through a service |
 | **Cannot share/publish** | Older Pro can't share a newer network; Enterprise must support it (Pro 3.7 can't share v8 to Enterprise 11.1) | Versions | Match Pro and Enterprise |
-| **Field Maps / Native SDK app broke** | Field Maps and Native Apps SDKs do not support v8 | Dataset version | Keep v7 for field apps; v8 is mainly telecom |
+| **Field Maps / Native SDK app broke** | Field Maps and Native Apps SDKs do not support v8 | Dataset version | Choose an earlier version for field apps (Esri says v8 is unsupported there and does not explicitly confirm v7); v8 is primarily for telecom |
 | Upgrade Dataset fails | 1) Not exclusive lock (services running or connections open); 2) topology enabled; 3) not database owner (branch versioning) **and** portal owner; 4) geodatabase below 10.8.1.2.6 (targets up to v6) or 11.2.0 (v7+); 5) no backup | Pro 3.7 tool page itself does not list these; they come from Esri's dataset administration page via the existing reference | Follow the sequence in `pro-help/09` |
 | Scripts read `ERRORCODE` wrongly after upgrade | Changed from double to big integer at v7; 32-bit ObjectID assumptions fail (64-bit ObjectIDs) | Field types | Update scripts |
 | Named trace configs missing | Need v5+ | Version | Upgrade |
