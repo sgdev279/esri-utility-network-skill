@@ -122,6 +122,7 @@ parts involved, then the code in the target surface (format 3).
 | `learn/09-failure-anatomy-symptom-to-fix.md` | Symptom-to-cause triage, error code catalogue, what to ask first |
 | `learn/10-performance-scale-and-operations.md` | Where time goes, validate/update/trace performance, database and service tuning, maintenance routines |
 | `learn/11-worked-examples-end-to-end.md` | "Walk me through it": ten worked scenarios (first edit to first trace, invisible asset, stale subnetwork, two editors, rule blocks a connection, tier design, trace too wide/narrow, bulk load, upgrade) |
+| `learn/12-glossary-and-concept-map.md` | A-Z glossary (~140 terms), concept map, same-thing-different-names across Pro/REST/JS/C#/arcpy, confused pairs, learning paths |
 | `learn/13-arcgis-pro-fundamentals-and-workflow.md` | Pro anatomy (tab, panes, tables), the ordered build/administer flow with owner and license per step, tool map of the UN toolbox, daily work by role, single-user differences |
 | `learn/14-developer-surfaces-and-sdk-fundamentals.md` | Which API to use, Pro SDK namespace map and threading, concept table across Pro SDK / arcpy / REST / JS, five worked snippets, developer mistakes |
 
