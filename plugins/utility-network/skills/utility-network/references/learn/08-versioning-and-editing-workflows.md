@@ -1,5 +1,5 @@
 # Utility Network: Versioning and Editing Workflows
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 Read this file when the question is "how do several people safely edit a utility network, and what happens to topology, subnetworks and associations when their work is merged?" It covers branch versioning end to end (DEFAULT versus named versions, sessions and locks, reconcile and post, conflicts), the editing paths (Pro, feature services, Field Maps, offline, single-user), bulk loading, and editing the network structure itself. Builds on `learn/01-mental-model-and-life-of-an-edit.md` (the edit lifecycle), `learn/03-topology-engine-and-validation.md` (dirty areas, validate) and `learn/06-tiers-and-subnetworks-in-depth.md` (Update Subnetwork); this file does not repeat their mechanism, it shows how it behaves across versions. Practitioner guidance is labelled as such; everything else is from the Esri pages listed under Sources.
 
@@ -82,7 +82,7 @@ The REST `create` operation also accepts `hidden`; its default access is `privat
 
 `https://<root>/<serviceName>/VersionManagementServer` exists when the **Version management** capability was enabled when the feature service was shared. It cannot be added after the fact for the offline replica scenario (Esri offline page), so decide at publish time. It is a server object extension that shares the feature service's instance settings.
 
-Service-level operations (Esri): `create`, `delete`, `versionInfos` (name filter from 12.0), `lockInfos` (12.1), `purgeLock`. Per-version operations: `alter`, `conflicts`, `differences`, `inspectConflicts`, `post`, `reconcile`, `restoreRows`, `startReading`, `stopReading`, `startEditing`, `stopEditing`; further detail in `rest-api/04-version-management-validation-feature-service.md`.
+Service-level operations (Esri): `create`, `delete`, `versionInfos` (its `nameFilter` parameter is documented as introduced in 11.6 on the versionInfos page, while the `supportsVersionInfosNameFilter` capability flag is listed at 12.0; test the flag), `lockInfos` (12.1), `purgeLock`. Per-version operations listed on the Version page: `alter`, `conflicts`, `deleteForwardEdits`, `differences`, `inspectConflicts`, `partialPost`, `post`, `reconcile`, `restoreRows`, `startReading`, `stopReading`, `startEditing`, `stopEditing`; further detail in `rest-api/04-version-management-validation-feature-service.md`.
 
 | Operation | Key facts (Esri REST pages) |
 |---|---|
@@ -91,7 +91,7 @@ Service-level operations (Esri): `create`, `delete`, `versionInfos` (name filter
 | `purgeLock` | Deletes all locks on a version (`versionName` as `owner.version`); unsaved edits in active sessions are lost; allowed to the version owner, the service owner and a portal administrator; introduced 10.7.1 |
 | `stopEditing` | `saveEdits=true` keeps the session's edits; `false` discards them. A write lock is downgraded to a read lock, not removed |
 
-Capability flags worth checking before scripting (introduced in the release shown, per the Esri service page): `supportsPartialPost` (10.9), `supportsAsyncReconcile` and `supportsAsyncPost` (10.9.1), `supportsPartialPostOperation` (11.5), `supportsMultipleReadersSingleWriterLocking` (12.0), `supportsLockInfos` and `supportsCreateWithMoment` (12.1).
+Capability flags worth checking before scripting (introduced in the release shown, per the Esri service page): `supportsPartialPost` (10.9), `supportsDifferencesFromMoment` (10.9), `supportsDifferencesWithLayers` (10.9.1), `supportsAsyncReconcile` and `supportsAsyncPost` (10.9.1), `supportsPartialPostOperation` (11.5), `supportsMultipleReadersSingleWriterLocking` (12.0), `supportsVersionInfosNameFilter` (12.0), `supportsLockInfos` and `supportsCreateWithMoment` (12.1).
 
 **Naming (Practitioner guidance).** Version names are prefixed with the owner (the Esri example is `UNADMIN.ProjectA`). Encode the work order ID and discipline in the name within the 62 character limit; do not rely on the 64 character description for anything a script must parse.
 
@@ -123,7 +123,7 @@ Rules documented by Esri:
 | Release | Model |
 |---|---|
 | Enterprise 12.0 and later | Many readers, one writer. A writer takes a write lock; others can still take read locks. A reconcile still needs the exclusive lock |
-| Enterprise 11.5 and earlier | Either many viewers or one editor. Starting an edit needs an exclusive lock with no read locks, and nobody else can read until `stopEditing` |
+| Enterprise 11.5 and earlier | Either many viewers or one editor. Starting an edit needs a lock with no other read locks present, and nobody else can read until `stopEditing` |
 
 Esri's scenarios page adds that an editor who starts editing a named version takes an exclusive lock and nobody else can connect (describing the pre-12.0 behaviour); setting the version private keeps others out except elevated users.
 
@@ -213,13 +213,13 @@ Consequence (Practitioner guidance, from the documented rules): updating a subne
 
 ## 9. Moments and `queryNetworkMoments`
 
-A *moment* is a point in time (Unix milliseconds on most REST pages) at which a version had a given state. Moments make the UN auditable: traces accept `moment`, and diagrams and exports can run at a past moment if topology was enabled then.
+A *moment* is a point in time (Unix milliseconds on most REST pages; the `differences` page documents `fromMoment` and `moment` as epoch seconds, so check the unit per operation) at which a version had a given state. Moments make the UN auditable: traces accept `moment`, and diagrams and exports can run at a past moment if topology was enabled then.
 
 `queryNetworkMoments` on `UtilityNetworkServer` takes `gdbVersion` (default `sde.DEFAULT`), `sessionId`, `moment` and `momentsToReturn` (`initialEnableTopology`, `fullValidateTopology`, `partialValidateTopology`, `enableTopology`, `disableTopology`, `definitionModification`, `updateIsConnected`, `indexUpdate`, `all`). It returns `networkMoments` (each with `moment`, `time`, `duration` in ms) and `validNetworkTopology`. The unit of `time` in the Esri example is not stated; verify against the Esri docs for your version before converting (`rest-api/02-*.md`).
 
 Other uses of moments:
 
-- Responses of most edit and admin operations include a `moment` (for example `stopEditing` from 12.0, reconcile, post, updateSubnetwork).
+- Responses of most edit and admin operations include a `moment` (for example `startEditing` from 12.0, reconcile, post, updateSubnetwork; the `stopEditing` page documents only `success` or `error`).
 - `applyEdits` can return `editMoment` with `returnEditMoment=true` (ArcGIS Server services).
 - `create` on `VersionManagementServer` accepts `moment` from 12.1, so a version can branch from a past state.
 - `differences` can compare from a moment (`supportsDifferencesFromMoment`, 10.9).
@@ -470,7 +470,7 @@ Practitioner guidance unless stated; Esri-documented parts are marked.
 - https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/utility-network-compatibility.html
 - https://doc.esri.com/en/arcgis-pro/latest/help/editing/configure-a-group-template.html
 - https://doc.esri.com/en/arcgis-pro/latest/help/data/geodatabases/overview/manage-branch-version-conflicts.html
-- https://pro.arcgis.com/en/pro-app/3.2/help/data/geodatabases/overview/branch-version-scenarios.htm
+- https://pro.arcgis.com/en/pro-app/3.2/help/data/geodatabases/overview/branch-version-scenarios.htm (archived Pro 3.2 page; look for the current doc.esri.com equivalent)
 - https://doc.esri.com/en/arcgis-pro/latest/help/data/network-diagrams/reconcile-diagram-edits-and-post-changes-to-default.html
 - https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/update-subnetwork.html
 - https://doc.esri.com/en/arcgis-pro/latest/tool-reference/utility-networks/validate-network-topology.html
@@ -487,7 +487,7 @@ Practitioner guidance unless stated; Esri-documented parts are marked.
 - https://developers.arcgis.com/rest/services-reference/enterprise/updatesubnetwork-utility-network-server/
 - https://developers.arcgis.com/rest/services-reference/enterprise/apply-edits-feature-service-layer/
 - https://enterprise.arcgis.com/en/server/12.0/publish-services/linux/offline-maps-and-branch-versioned-data.htm
-- https://earthquake.usgs.gov/arcgis/help/en/field-maps/android/use-maps/utility-network.htm (a mirror of the Esri Field Maps help topic; verify on Esri's own site)
+- https://earthquake.usgs.gov/arcgis/help/en/field-maps/android/use-maps/utility-network.htm (a third-party mirror of the Esri Field Maps help topic, content checked 2026-10-16; doc.esri.com and doc.arcgis.com Field Maps pages were not reachable at review, so verify on Esri's own site)
 - https://doc.arcgis.com/en/arcgis-solutions/latest/reference/configure-sewer-utility-network-environment.htm
 - https://learn.arcgis.com/en/projects/load-data-into-a-utility-network/
 - https://www.esri.com/arcgis-blog/products/utility-network/data-management/dirty-area-management-with-the-utility-network

@@ -1,4 +1,6 @@
 # Utility Network — REST API: Version Management, Validation & Feature Service Extensions (Deep Reference)
+> Last reviewed: 2026-10-16 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+
 *Source: developers.arcgis.com/rest/services-reference/enterprise/*
 
 ## The complete picture: six services work together for one utility network
@@ -28,13 +30,11 @@ editing, and conflicts all sit on top of — see
 usable over REST/apps rather than only via direct database connection.
 
 ### Service-level operations
-`create`, `delete`, `purgeLock`, `versionInfos`.
+`create`, `delete`, `purgeLock`, `versionInfos`, `lockInfos` (12.1).
 
 ### Per-version resource operations (`.../VersionManagementServer/versions/<versionName>/...`)
 `alter`, `conflicts`, `differences`, `inspectConflicts`, `post`, `reconcile`,
-`restoreRows`. **Most of these require the ArcGIS Advanced Editing user type
-extension** (specifically: Delete, Alter, Purge Lock, Conflicts,
-Differences, Inspect Conflicts, Reconcile, Post, Restore Rows).
+`restoreRows` (the Version page also lists `deleteForwardEdits`, `partialPost`, `startReading`, `stopReading`, `startEditing`, `stopEditing`). **Some of these require the ArcGIS Advanced Editing user type extension (Enterprise 11.2+; Esri says requirements for some operations changed in 12.0 and does not list them on the service page; reconcile, differences and alter pages each state the requirement; check Esri's license page).**
 
 ### `reconcile`
 - Detects differences between the edit version and a **target version**
@@ -53,8 +53,8 @@ Differences, Inspect Conflicts, Reconcile, Post, Restore Rows).
 |---|---|
 | `supportsConflictDetectionByAttribute` | Reconcile's `conflictDetection` parameter can define conflicts **by attribute** rather than only by whole-object — services without this flag treat any co-edited object as a full conflict, even if the edited attributes didn't actually overlap. |
 | `supportsPartialPost` | `post` accepts a `rows` parameter to post only a **subset** of the version's edits to DEFAULT — the "partial post" pattern (confirmed in Esri's own Python API guide: `version.post(rows=<subset>)`). |
-| `supportsDifferencesWithMoment` | `differences` accepts `fromMoment` to compare against a specific historical moment instead of only "since branch point." |
-| `supportsDifferencesWithLayers` | `differences` accepts a `layers` filter instead of always returning differences for every layer. |
+| `supportsDifferencesFromMoment` (10.9) | `differences` accepts `fromMoment` (epoch seconds; valid only on the default version) to compare against a specific historical moment. Esri's page text calls this flag `supportsDifferencesWithMoment`, but the JSON response uses `supportsDifferencesFromMoment`; script against the JSON name. |
+| `supportsDifferencesWithLayers` (10.9.1) | `differences` accepts a `layers` filter instead of always returning differences for every layer. |
 | `supportsAsyncReconcile` | Reconcile can run asynchronously (useful for large edit sets that would otherwise block a client). |
 
 ### Practical Python pattern (via the ArcGIS API for Python, same concepts as raw REST)
@@ -179,3 +179,9 @@ behavior:
   extension in some cases (Advanced Editing user type, and possibly Data
   Reviewer) — flag license requirements rather than assuming an operation is
   available just because the service resource exists.
+
+## Sources
+- https://developers.arcgis.com/rest/services-reference/enterprise/version-management-service/ (capability flags, license note)
+- https://developers.arcgis.com/rest/services-reference/enterprise/version/ , .../reconcile , .../post , .../differences/ , .../version-infos/ , .../lock-infos/
+- https://developers.arcgis.com/rest/services-reference/enterprise/overview-of-utility-network-services (six-service architecture; not re-fetched 2026-10-16)
+- Validation Server and LRServer statements above were not re-verified in the 2026-10-16 review.
