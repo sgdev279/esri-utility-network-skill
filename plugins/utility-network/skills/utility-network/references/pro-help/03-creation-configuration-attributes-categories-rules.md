@@ -166,9 +166,10 @@ which features are considered.
 - **System-provided categories** exist by default per network type and
   **cannot be deleted** (only optionally assigned):
   - Traditional domain network: **Subnetwork Controller**, **Subnetwork Tap**,
-    and others tied to subnetwork/circuit management.
-  - Telecom domain network: **Unit Container**, **Unit Identifier**,
-    **Splitter**, and others tied to telecom-specific tracing semantics.
+    **Attribute Substitution** and **Propagator Resetter** (UN v8).
+  - Telecom domain network: **Circuit Location**, **Conflict Container**,
+    **Mux/Demux**, **Connector Junction**, **Splitter**, **Edge Unit
+    Container**, **Junction Unit Container** and **Unit Identifiable**.
 - **User-defined categories** (e.g., "Protective," "Disconnect") are created
   with `Add Network Category` and have **no limit** on how many can apply to
   one asset group/asset type combination (e.g., a fuse can be both

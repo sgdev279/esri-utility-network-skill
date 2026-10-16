@@ -74,14 +74,22 @@ accepts `bitwiseAnd`, `min`, `max`. Trace-level enums (`traceType`,
 ],
 "filterScope": "junctionsAndEdges"
 ```
-`filterBarriers` have no `type` property (just `name`, `operator`, `value`,
-`combineUsingOr`, `isSpecificValue`), and `value` is a numeric string. Per
-Pro's trace documentation (not restated on the REST page), filter barriers
-act after traversability: the trace still explores past them, but they limit
-what counts. In an isolation trace the filter barrier (e.g. "Isolating"
-category + operable) defines the isolating devices — **verify against the Esri
-docs for your version**.
+The REST syntax for `filterBarriers` lists `name`, `operator`, `value`
+(numeric string), `combineUsingOr`, `isSpecificValue` and no `type`, and gives
+no category example; it describes them as "network attribute or category
+conditions". For a category (e.g. Isolating), the only documented rule is the
+`conditionBarriers` one: `name` = `Category` with `isSpecificValue` true and
+the category in `value`. arcpy's `filterBarriers` object does expose a `type`
+property, so a Pro-saved configuration may carry `type` (the checker accepts
+it); confirm the exact shape by querying `traceConfigurations` for a
+configuration saved from Pro.
 
+Filter barriers **stop the trace**, like condition barriers (Esri Barriers
+page: "Filter barriers are like condition barriers"; they are evaluated on a
+second pass, after traversability barriers, and only in traces, never in
+subnetwork update or export). They do not let the trace keep exploring past
+them. In an isolation trace at least one filter barrier is required; it
+(e.g. "Isolating" category + operable) defines the isolating devices.
 ## Functions — aggregate values along the result
 
 ```json
@@ -147,6 +155,15 @@ stops the trace for the phases it doesn't carry. Request
 and `path` traces; the Trace Network Server reference states it is required
 for `shortestPath` (the Utility Network Trace page states no requirement —
 supply it anyway). `shortestPath` is deprecated at 12.1 in favour of `path`.
+
+## Defaults that differ between Pro and REST
+
+| Property | REST (Trace page) | Pro Trace tool / Configure a trace |
+|---|---|---|
+| `validateConsistency` | `true` | Validate Consistency unchecked (false) by default, for performance |
+| `allowIndeterminateFlow` | no default stated (send it explicitly) | checked (true) by default; needs UN dataset v5+ |
+| `numPaths` | 1 | 1 (Add Trace Configuration tool page says 2; set it explicitly) |
+| `includeFlowDirections` | no default; introduced Enterprise 12.1; elements, features and connectivity results only | unchecked; Enterprise 12.1+ for enterprise geodatabases |
 
 ## Newer / specialised properties (12.1 and path, circuit and loops traces)
 

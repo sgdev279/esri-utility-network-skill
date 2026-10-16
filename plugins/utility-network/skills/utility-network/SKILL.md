@@ -24,10 +24,13 @@ be exact rather than generic.
    - versions: **UN dataset version** (4–8), **Pro**, **Enterprise**
      (`pro-help/09-*.md` has the matrix)
    - industry/domain network (electric, gas, water, telecom, …)
-3. **Load only the reference files that match** (index below). Most real
+3. **Load only the reference files that match** (index below). For
+   "how does X work", "why does it behave like this" or "explain the UN"
+   questions start in `learn/` (mechanism-level teaching); for exact menu
+   paths, tool parameters and API signatures use the surface files. Most real
    questions touch two: e.g. a REST trace question needs
-   `pro-help/05-tracing.md` for semantics and `rest-api/01` + `08` for the
-   JSON.
+   `learn/07-tracing-in-depth-*.md` or `pro-help/05-tracing.md` for semantics
+   and `rest-api/01` + `08` for the JSON.
 4. **Run a script instead of reasoning by hand** when one fits (see
    *Scripts*): decoding a dirty-area Status, converting association-type
    codes, checking a trace request.
@@ -104,6 +107,20 @@ A mapping table (Pro setting → REST field → JS property → C# member) for t
 parts involved, then the code in the target surface (format 3).
 
 ## Reference index
+
+**Learn: fundamentals, how the Utility Network works (start here to teach or reason)**
+| File | Read when |
+|---|---|
+| `learn/01-mental-model-and-life-of-an-edit.md` | Orienting end to end: components, stored vs computed state, what happens between an edit and a correct trace |
+| `learn/02-data-model-in-depth.md` | Feature dataset layout, network sources, fields, subtypes, GlobalIDs, terminals, three kinds of connectivity, system tables, limits |
+| `learn/03-topology-engine-and-validation.md` | Network topology, enable/disable, dirty areas, Status bits, Validate mechanics, errors and how to resolve them |
+| `learn/04-rules-and-connectivity-design.md` | Rule families and types, default-deny, keys, evaluation, terminal rules, rule design method |
+| `learn/05-attributes-categories-and-attribute-rules.md` | Network attributes (bit budget, apportionable, substitution), categories, Arcade attribute rules and how they interact with topology |
+| `learn/06-tiers-and-subnetworks-in-depth.md` | Domain networks, tiers, subnetwork definition, controllers, Subnetworks table, update/export, subnetwork errors |
+| `learn/07-tracing-in-depth-and-configuration-library.md` | Life of a trace, traversability, filters, flow, functions, propagators, trace types, named configurations, ready-to-adapt configuration library |
+| `learn/08-versioning-and-editing-workflows.md` | Branch versioning, sessions and locks, reconcile/post, validate and update in versions, editing in Pro and via services, bulk loads |
+| `learn/09-failure-anatomy-symptom-to-fix.md` | Symptom-to-cause triage, error code catalogue, what to ask first |
+| `learn/10-performance-scale-and-operations.md` | Where time goes, validate/update/trace performance, database and service tuning, maintenance routines |
 
 **Concepts & administration (ArcGIS Pro Help)**
 | File | Read when |

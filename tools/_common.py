@@ -12,6 +12,8 @@ REF_DIR = SKILL_DIR / "references"
 SKILL_MD = SKILL_DIR / "SKILL.md"
 
 AREAS = {
+    "learn": "Learn: fundamentals and how it works",
+    "industry": "Industry guides (electric, gas, water, telecom)",
     "pro-help": "Concepts & administration (ArcGIS Pro Help)",
     "rest-api": "REST API",
     "js-api": "Developer SDKs and apps",

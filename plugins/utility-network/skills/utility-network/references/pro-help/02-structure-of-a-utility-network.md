@@ -9,16 +9,20 @@ concepts.
 ## The structure network (deep dive)
 
 - Every utility network has **exactly one** structure network, shared across all
-  domain networks. It is made of three feature classes, each carrying the same
-  `ASSETGROUP` / `ASSETTYPE` key fields as domain network classes:
+  domain networks. It is made of three feature classes and two object tables
+  (StructureJunctionObject and StructureEdgeObject, covered below), each
+  carrying the same `ASSETGROUP` / `ASSETTYPE` key fields as domain network
+  classes:
   - **StructureJunction** (point) — e.g., poles, pads, manholes.
   - **StructureLine** (line) — e.g., trenches, duct runs.
   - **StructureBoundary** (polygon) — e.g., station footprints, easements.
-  - (Community sources also mention **StructureJunctionObject**, a nonspatial
-    companion table for structure junctions, mirroring the Device/JunctionObject
-    split in domain networks — used when a structure needs non-spatial detail,
-    e.g. representing a pole's aerial-support-structure hardware separately from
-    the pole's point location.)
+  - **StructureJunctionObject** and **StructureEdgeObject** (nonspatial
+    tables), mirroring the JunctionObject/EdgeObject split in domain networks
+    (Esri's feature restrictions page names both, for example StructureLine to
+    StructureEdgeObject via StructureJunction). StructureJunctionObject is used
+    when a structure needs non-spatial detail, e.g. representing a pole's
+    aerial-support-structure hardware separately from the pole's point
+    location.
 - Structure features **carry no resource flow** (no water/electricity "flows
   through" a pole) but serve two purposes:
   1. **Containment** — e.g., a vault (structure) contains valves/regulators
@@ -117,7 +121,7 @@ through the transformer, not through map geometry.
   first time — cannot be changed afterward. Plan terminal configurations before
   first topology enablement.
 - On a **Line** feature that connects to a terminal-bearing device, the line
-  carries `FROMTERMINAL`/`TOTERMINAL`-style attribute fields recording which
+  carries `FROMDEVICETERMINAL`/`TODEVICETERMINAL` attribute fields recording which
   terminal each end connects to. Esri explicitly advises against hand-editing
   these fields directly — use the proper editing tools ("Modify terminal
   connections") since the attribute editor doesn't apply the same intelligent
@@ -196,8 +200,9 @@ script.)
     tier 2 — the opposite intuition from a source-based network where rank 1 is
     typically the highest-level "transmission" tier feeding down into
     "distribution").
-  - **Topology type** — `Mesh` or `Radial`. Determines structure/traceability
-    assumptions for subnetworks in that tier.
+  - **Topology type** — `Mesh` or `Radial`. Esri states it currently makes no
+    difference to tracing or subnetwork management (functionality under
+    development for a future release); hierarchical tiers are always mesh.
 - **Partitioned vs. hierarchical, operationally**:
   - **Partitioned**: tiers of different rank are not adjacent; a feature belongs
     to exactly one tier; "upstream/downstream tier rank" is a meaningful
