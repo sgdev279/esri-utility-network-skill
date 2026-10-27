@@ -17,7 +17,7 @@
 
 Utility Network questions are hard for general-purpose AI: the answer depends on the dataset version, the deployment, which API you're in, and a long list of ordering rules and gotchas. This project packages that knowledge as a Claude Agent Skill so an agent answers like an experienced UN implementer.
 
-The skill is 43 curated reference files, including 14 in-depth Learn files that teach how the Utility Network works, answer templates, helper scripts and evals. It works in Claude.ai, Claude Code and any agent that reads Agent Skills.
+The skill is 46 curated reference files, including 17 in-depth Learn files that teach how the Utility Network works, answer templates, helper scripts and evals. It works in Claude.ai, Claude Code and any agent that reads Agent Skills.
 
 ## See it in action
 

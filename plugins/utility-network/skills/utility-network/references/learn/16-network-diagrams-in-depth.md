@@ -105,7 +105,7 @@ Each diagram feature carries a link to the network feature or object it stands f
 Esri-documented points:
 
 - Diagrams live in the network's **diagram dataset** in the geodatabase. The REST service exposes it as the **Diagram Dataset** child resource (`rest-api/03-network-diagram-service.md`).
-- The v8 `systemLayers` listing includes diagram layers (`diagramJunctionLayerId`, `diagramEdgeLayerId`, `diagramContainerLayerId`) and temporary ones (`temporaryDiagram*LayerId`); see the table in `learn/02-data-model-in-depth.md`. Table and field names inside the diagram dataset are not documented in the pages read for this file: Verify against the Esri docs for your version before scripting against them.
+- The v8 `systemLayers` listing includes diagram layers (`diagramJunctionLayerId`, `diagramEdgeLayerId`, `diagramContainerLayerId`) and temporary ones (`temporaryDiagram*LayerId`); see the table in `learn/02-data-model-in-depth.md`. Table and field names inside the diagram dataset are not documented on the Esri pages reviewed 2026-10-27 (unverifiable); do not script against them.
 - **Temporary diagram** (default): flagged by the database for discard when the last diagram map view closes; still sits in the temporary tables until **Purge Temporary Diagrams** runs. Esri's blog says unversioned temporary tables add little size but still need maintenance.
 - **Stored diagram**: made with **Store Diagram**; reopened from **Find Diagrams**; carries a name, **access rights** (Public default, Protected, Private) and `#`-separated **tags**; can be edited, updated, extended only per the rules in section 4.
 - Branch versioning: stored diagrams in a branch-versioned dataset add rows for every edit to a diagram feature (Esri blog). Diagram edits reconcile with the reconciled version winning on conflict (`learn/08-versioning-and-editing-workflows.md`).
@@ -167,7 +167,7 @@ Esri's page "Introduction to diagram templates" says three templates are include
 Notes on the recipes:
 
 - The recipes come from the template page's "re-create" section. In CollapseContainers the Expand rule runs first so the collapse works from a fully expanded graph; **Practitioner guidance**: read it as "open then close, in that order", not as redundancy.
-- Basic is the only shipped template with extension enabled. The other two do not list it in the recipe, so Extend/Append are unavailable on them until an admin alters the template (section 6.2). Verify against the Esri docs for your version.
+- Basic is the only shipped template with extension enabled. The other two do not list it in the recipe, so Extend/Append are unavailable on them until an admin alters the template (section 6.2). Checked 2026-10-27 against the Esri template page: only Basic's Alter step lists "Enable to extend diagram".
 - A template list reflects those tied to the network layer. A template used as a **subnetwork system diagram template** on a tier disappears from the **New** and **Use Trace Locations** lists when consuming a service, but remains visible via a database connection (Esri, section 4.8).
 - The **default template** is the first one in the New drop-down at the start of each Pro session; choosing another makes it the new default (Esri vocabulary). Alter Diagram Template's `Default template` option sets it administratively.
 
@@ -403,12 +403,12 @@ Every rule tool takes **Input Network** and **Input Diagram Template**, has **Ac
 | **Set start/root** | Set Starting Point By Attribute; Set Root Junction By Attribute | Starting points feed a later Trace rule (if none match, the trace is skipped); give a **terminal ID** for subnetwork traces. Root junction anchors tree layouts. Create Diagram's trace-locations option overrides starting-point rules |
 | **Spatial query** | Add Spatial Query Rule | Add Features, Existing Features, Relationship (Intersect default; Within a distance; Contains / Is contained of; Within; Boundary touches; Share a line segment with; Crossed by the outline of), Search Distance, two query definitions |
 | **Associations** | Connectivity Associations Rule; Structural Attachments Rule | Draw straight edges only when both elements are already in the diagram. Time-consuming: skip when another rule already guarantees them (a Trace rule returns connectivity associations; a Remove Feature rule that deletes structures makes Structural Attachments useless) |
-| **Iteration** | Start Iteration Rule; Stop Iteration Rule | Loop over the rules between them, typically reductions, because reducing changes connectivity and makes new junctions eligible. The Start page does not itself describe the pairing; Verify against the Esri docs for your version |
+| **Iteration** | Start Iteration Rule; Stop Iteration Rule | Loop over the rules between them, typically reductions, because reducing changes connectivity and makes new junctions eligible. Esri: Start marks the beginning and Stop "the end of the rule sequence the diagram builder iterates over". Neither page says whether pairs are mandatory or can nest (unverifiable) |
 | **Capability** | Diagram Feature Capability By Attribute; By Category | Capability options: Prevent/Allow related container to collapse (default Prevent), Prevent/Allow reduce junction, Save unconnected empty container junctions as polygons, Ignore to start upstream/downstream trace; valence checkboxes (Pro 3.4+) |
 
 Layout configuration tools (`Add <X> Layout`): Angle Directed, Compression, Force Directed, Grid, Linear Dispatch, Main Ring, Mainline Tree, Partial Overlapping Edges, Radial Tree, Relative Mainline, Reshape Diagram Edges, Smart Tree, Spatial Dispatch, plus **Add Diagram Feature Selection To Layout** (limits the next active layout to a selection; Pro 3.6 / Enterprise 12.0). New layouts are active by default and applied in entry order.
 
-Older note: `pro-help/07-network-diagrams.md` lists Collapse Container By Attribute, Set Root Junction By Attribute, Add Spatial Query and Start Iteration only; the catalogue above completes it and does not contradict it. Parameter names in Python are not on the pages read; Verify against the Esri docs for your version.
+Older note: `pro-help/07-network-diagrams.md` lists Collapse Container By Attribute, Set Root Junction By Attribute, Add Spatial Query and Start Iteration only; the catalogue above completes it and does not contradict it. Python parameter names are not on the pages reviewed 2026-10-27 (unverifiable); check the tool's Python tab.
 
 ---
 
@@ -420,14 +420,14 @@ Older note: `pro-help/07-network-diagrams.md` lists Collapse Container By Attrib
 |---|---|
 | Retrieve stored diagrams | Find Diagram Names (extent, SQL where, element GlobalIDs), Find Diagram Infos |
 | Characteristics | Diagram Info and consistency (Query Consistency State) |
-| Create (temporary) | Create Diagram From Features (GlobalIDs), **Create Diagram From Trace Locations** (11.5; `template`, `traceLocations` with `traceLocationType` startingPoint/barrier/stoppingPoint, `globalId`, optional `terminalId`, `percentAlong`, `isFilterBarrier`, `firstUnit`, `numUnits`), Create Diagram From Circuit Name |
+| Create (temporary) | Create Diagram From Features (GlobalIDs), **Create Diagram From Trace Locations** (11.5; `template`, `traceLocations` with `traceLocationType` startingPoint/barrier/stoppingPoint, `globalId`, optional `terminalId`, `percentAlong`, `isFilterBarrier`, `firstUnit`, `numUnits`), Create Diagram From Circuit Name (12.1; `template` configured with a Circuit-type Trace rule on a telecom domain, `circuitName`) |
 | Edit and maintain | Per-diagram operations: Apply Layout, Save Layout, Append Features, Extend, Clear Flags, Query Diagram Content, others (see `rest-api/03-network-diagram-service.md`) |
 | Delete | Delete Diagram |
 | Child resources | Diagram Dataset, Diagrams, Diagram Templates |
 
-The page's own summary list omits Find Network Features from OIDs; this is Esri's inconsistency, not yours.
+Per-diagram `findNetworkFeaturesFromOIDs` (11.5; takes diagram `junctionObjectIDs`, `edgeObjectIDs`, `containerObjectIDs`, `includeAggregations`; `pbf` output from 12.0) is not in the service page's operation list but is linked from its description; Esri recommends it over `findNetworkFeatures` from 11.5. Query Consistency State returns `esriDiagramIsConsistent`, `esriDiagramNotConsistentWithTopology` or `esriDiagramHasDirtyFeatures` per diagram name.
 
-**Requirements.** Advanced Editing user type extension for diagram use (REST and Pro pages). `rest-api/03` notes find operations list a Utility/Trace Network extension instead; treat per-operation license notes as authoritative and check the specific operation.
+**Requirements.** Advanced Editing user type extension for diagram use (REST and Pro pages). Verified 2026-10-27: Find Diagram Infos, Find Diagram Names and Query Consistency State state Advanced Editing only "for versions prior to ArcGIS Enterprise 11.5" and name no extension from 11.5; the earlier "Utility/Trace Network extension" claim in `rest-api/03` was wrong.
 
 **Publishing prerequisites (Pro 3.7 publishing help).**
 
@@ -448,7 +448,7 @@ Pro SDK note: Pro SDK can build custom layouts and tools (`references/pro-sdk/01
 
 | Item | Fact | Source tag |
 |---|---|---|
-| Service-built diagram size | Creating a diagram from a **service** with more than 49,999 features fails with error 160243; Esri closed Support bug 000168157 "As Designed" (Pro 3.3, 2024); workaround: select under 50,000 features | Esri Support; Verify against the Esri docs for your version |
+| Service-built diagram size | Creating a diagram from a **service** with more than 49,999 features fails with error 160243; Esri closed Support bug 000168157 "As Designed" (Pro 3.3, 2024); workaround: select under 50,000 features | Esri Support bug page (verified 2026-10-27: fails at 50,000 or more features) |
 | Layout time-out | Synchronous layouts on a service hit a 600-second time-out; use async above about 25,000 features | Esri tool page |
 | Template rule cost | Connectivity Associations and Structural Attachments rules are time-consuming; add them only when not guaranteed by other rules | Esri tool pages |
 | Keep Edge Vertices | Adds processing time | Esri Alter Diagram Template |
@@ -504,7 +504,7 @@ Cautions:
 | "A shortest or defined path between two points" | Create Diagram with trace locations including stopping points | Template with a Trace rule of type Path | Mainline Tree |
 | "Keep this and share it" | A consistent temporary diagram | Any template with storage enabled | Hand-tuned, then Store with tags |
 | "Put diagrams in my web app" | NetworkDiagramServer REST calls | An existing template | Apply Layout over REST, custom rendering |
-| "Telecom circuit view" | Find Circuits, Create Diagram From Circuit Name | Template associated with the telecom domain | Verify against the Esri docs for your version |
+| "Telecom circuit view" | Find Circuits, Create Diagram From Circuit Name | Template associated with the telecom domain | Not documented in the pages reviewed (unverifiable) |
 
 ## Common misconceptions
 

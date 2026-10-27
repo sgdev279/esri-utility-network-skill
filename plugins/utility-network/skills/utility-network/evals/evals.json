@@ -373,6 +373,66 @@
         "States Esri does not map error IDs to Status bits",
         "Says to read the Dirty Areas attribute table for Status and error code"
       ]
+    },
+    {
+      "id": 30,
+      "name": "group-preset-template",
+      "prompt": "What's the difference between a feature template, a group template and a preset template in a utility network, and when would an editor use a preset?",
+      "files": [],
+      "expected_output": "Explains template types and what presets carry.",
+      "assertions": [
+        "Distinguishes feature templates (one feature), group templates (several features created together, e.g. a device with its container/children) and preset templates",
+        "Says preset templates keep associations defined when authored",
+        "Notes template defaults do not replace attribute rules or network rules, and anything unverified is flagged"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "connect-blocked-edit",
+      "prompt": "An editor can't connect a new line to a device terminal in Pro; it snaps but validate flags an error. How do I test whether a rule allows it and fix it?",
+      "files": [],
+      "expected_output": "Practical rule-testing method, correctly labelled.",
+      "assertions": [
+        "Says rules are enforced at edit time for some checks and at validate time for others, and to read the error ID after Validate",
+        "Suggests checking asset group/type of both features and the Network Rules (Add/Import Rules) before changing geometry",
+        "Does not claim Esri has a dedicated 'test rule' button (labels any method as practitioner guidance)"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "diagram-templates",
+      "prompt": "What diagram templates ship with the utility network and which would I use to see devices inside their containers?",
+      "files": [],
+      "expected_output": "Template catalogue.",
+      "assertions": [
+        "Names the Basic, ExpandContainers and CollapseContainers templates",
+        "Recommends ExpandContainers to show container contents",
+        "Mentions diagrams are stored schematics with a consistency state that can go out of date after network edits"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "enterprise-publish",
+      "prompt": "What do we need in place to publish a utility network to Enterprise and what services does that give us?",
+      "files": [],
+      "expected_output": "Publish prerequisites and services.",
+      "assertions": [
+        "Mentions branch versioning registration, both owners, and publishing as a map image layer with Feature access and Version Management",
+        "Lists the services the UN layer exposes (Feature, Utility Network, Version Management, Network Diagram)",
+        "States query and trace do not need an extension on current releases while editing/publishing needs Advanced Editing"
+      ]
+    },
+    {
+      "id": 34,
+      "name": "exb-version-widget",
+      "prompt": "We're on Enterprise 12.1 and use the Branch Version Management widget in Experience Builder. Anything to change?",
+      "files": [],
+      "expected_output": "Widget deprecation.",
+      "assertions": [
+        "States the Branch Version Management widget is deprecated at 12.1 and retired at 12.2",
+        "Points to the Branch Version Editing widget as the replacement",
+        "Says to verify against Esri docs rather than inventing details"
+      ]
     }
   ]
 }

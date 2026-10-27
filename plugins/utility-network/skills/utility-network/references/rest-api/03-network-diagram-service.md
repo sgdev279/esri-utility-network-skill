@@ -1,5 +1,5 @@
 # Utility Network — REST API: Network Diagram Service (Deep Reference)
-*Source: developers.arcgis.com/rest/services-reference/enterprise/*
+*Sources: https://developers.arcgis.com/rest/services-reference/enterprise/network-diagram-service/ and the per-operation pages linked from it. Last reviewed: 2026-10-27 (Enterprise 12.1). Deeper treatment: `learn/16-network-diagrams-in-depth.md`.*
 
 ## Don't confuse this with the legacy "Schematics" service
 
@@ -19,8 +19,10 @@ interchangeable APIs despite superficial similarity.
 ## `NetworkDiagramServer` — service-level operations
 
 `https://<root>/<serviceName>/NetworkDiagramServer`
-- **Operations**: `Create Diagram From Features`, `Delete Diagram`,
+- **Operations**: `Create Diagram From Circuit Name` (12.1), `Create Diagram From Features`,
+  `Create Diagram From Trace Locations` (11.5), `Delete Diagram`,
   `Find Diagram Infos`, `Find Diagram Names`, `Query Consistency State`.
+- Service-level note (Esri): the active portal account must hold the **ArcGIS Advanced Editing** user type extension to use diagrams with utility/trace network services; per-operation notes below. All are POST.
 - **Child resources**: `Diagram Dataset`, `Diagrams`, `Diagram Templates`.
 
 ### `createDiagramFromFeatures`
@@ -66,16 +68,27 @@ interchangeable APIs despite superficial similarity.
 
 ### `findDiagramInfos`
 `.../NetworkDiagramServer/findDiagramInfos`
-- Requires the ArcGIS **Utility Network** or **Trace Network** user type
-  extension (note: a *different* license requirement than
-  `createDiagramFromFeatures`, which needs Advanced Editing — check the
-  specific license per operation rather than assuming one license covers the
-  whole service).
+- Licence (verified 2026-10-27): Esri states Advanced Editing only "for versions prior to ArcGIS Enterprise 11.5"; no extension is named from 11.5. The earlier claim here that it needs a Utility/Trace Network extension was wrong. `findDiagramNames` and `queryConsistencyState` carry the same pre-11.5 note.
 - Parameters: `gdbVersion`, `sessionId`, `moment`, `diagramNames` (**required**
   array of diagram name strings), `f`.
 - Response: `{ "diagramInfos": [ <diagramInfo1>, ..., <diagramInfoN> ] }` —
   an array of the same Diagram Info object shape shown above, one per
   requested name.
+
+### `createDiagramFromTraceLocations` (11.5)
+`.../NetworkDiagramServer/createDiagramFromTraceLocations`
+- Requires Advanced Editing. Creates a temporary diagram from trace locations.
+- Parameters: `gdbVersion`, `sessionId` (optional), `template` (required), `traceLocations` (required array; each item has `traceLocationType` = `startingPoint` | `barrier` | `stoppingPoint`, `globalId` (required), optional `terminalId`, `percentAlong`, `isFilterBarrier`, `firstUnit`, `numUnits`), `f`.
+- Response: Diagram Info object (as above).
+
+### `createDiagramFromCircuitName` (12.1)
+`.../NetworkDiagramServer/createDiagramFromCircuitName`
+- Requires Advanced Editing. Creates a temporary diagram for a telecom circuit.
+- Parameters: `gdbVersion`, `sessionId` (optional), `template` (required; must have a Trace rule of type Circuit on a telecom domain), `circuitName` (required), `f`. Response: Diagram Info object.
+
+### `findDiagramNames` and `queryConsistencyState`
+- `findDiagramNames` (10.6): optional `extent`, `where` (fields NAME, USERTAG, CREATIONDATE, CREATOR, LASTUPDATE, UPDATEDBY), `features` (`globalIDs`), `excludeSystemDiagrams` (default false); returns `{"diagramNames": [...]}`.
+- `queryConsistencyState` (10.6): `diagramNames` required; returns per name `esriDiagramIsConsistent`, `esriDiagramNotConsistentWithTopology` or `esriDiagramHasDirtyFeatures`.
 
 ### `deleteDiagram`
 `.../NetworkDiagramServer/deleteDiagram`
@@ -96,7 +109,14 @@ a much larger operation set becomes available (`POST`), including:
 - **Editing/layout operations**: `Append Features`, `Apply Layout`,
   `Apply Template Layouts`, `Clear Flags`, `Extend`, `Find Diagram Features`,
   `Find Initial Network Objects`, `Find Network Features`, `Save Layout`,
-  `Set Diagram Element Info`.
+  `Set Diagram Element Info`. Esri's resource page also lists Find Network Features from OIDs (11.5), Get Aggregations, Get Flags, Manage Flag, Overwrite From Features, Query Attributes By Source, Clear Diagram Element Info, Store and Update.
+- Child resources of a diagram: Dynamic Layers, Layer Definitions, Web Layer Definitions, Diagram Map. Resource licence note: Advanced Editing.
+
+### `findNetworkFeaturesFromOIDs` (11.5)
+`.../diagrams/<diagramName>/findNetworkFeaturesFromOIDs`
+- Advanced Editing. Maps diagram feature ObjectIDs to network element GlobalIDs; Esri recommends it over `findNetworkFeatures` from 11.5. Required: `junctionObjectIDs`, `edgeObjectIDs`, `containerObjectIDs`, `includeAggregations`. Optional: `gdbVersion`, `sessionId`, `moment`, `findContainerIfNonSpatial`, `f` (`html`, `json`, `pbf` from 12.0).
+- Response: `features` array of `globalID`, `featureOID`, `networkSourceID`, `geometryType` (0 edge, 1 point, 4 polygon; 2 and 3 undocumented).
+- Not in the service page's operation list, but linked from its description.
 
 ### `getDiagramElementInfo` (worked example — filter-by-selection pattern)
 ```
@@ -127,7 +147,4 @@ when writing client code against this endpoint.
   needs the diagram to persist across sessions/users, they need the
   **Store Diagram** action (Pro-side) or check `canStore`/`isStored` at the
   REST layer before assuming persistence.
-- License requirements **differ per operation** on this service (Advanced
-  Editing for create/delete, Utility/Trace Network extension for find) —
-  always double check the specific operation's license note rather than
-  assuming uniform licensing across the whole `NetworkDiagramServer`.
+- Licence: Advanced Editing is the service-wide note. From 11.5 the find and consistency operations no longer state it; create and delete still do. Check each operation page.

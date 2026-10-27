@@ -1,5 +1,5 @@
 # Utility Network — Network Diagrams (Deep Reference)
-*Source: ArcGIS Pro Help, "Network Diagrams" book (doc.esri.com/en/arcgis-pro/latest/help/data/network-diagrams/)*
+*Sources: https://doc.esri.com/en/arcgis-pro/latest/help/data/network-diagrams/ and https://doc.esri.com/en/arcgis-pro/latest/tool-reference/network-diagram/. Last reviewed: 2026-10-27 (Pro 3.7 / Enterprise 12.1). Full detail: `learn/16-network-diagrams-in-depth.md`.*
 
 Network diagrams are simplified, symbolic (not necessarily geographically
 accurate) representations of network connectivity — useful for schematics,
@@ -33,7 +33,19 @@ or trace network** + a **named diagram template**, each with an `Active` /
 | **Collapse Container By Attribute Rule** | Collapses all content related to containers matching an **SQL filter** into a simplified representation. Optional **"Aggregate reconnected edges"** — when checked (default), edges reconnecting to the collapsed container junction are merged into a single reduction edge rather than shown individually, even if multiple original edges connected two now-collapsed junctions. |
 | **Set Root Junction By Attribute Rule** | Flags junctions from a given source class/table as **root junctions** using an attribute filter — anchors/starting points for diagram layout logic. |
 | **Add Spatial Query Rule** | Automatically appends new network features to a diagram based on their **spatial location relative to features already in the diagram** — both the "existing feature" set and the "candidate to append" set can be filtered by SQL expression. |
-| *(others exist in the same family, e.g. reduction rules, aggregation rules — not yet pulled in detail; same parameter shape: Input Network, Input Diagram Template, Active, plus rule-specific filters)* |
+| **Stop Iteration Rule** | Marks the end of the rule sequence the builder iterates over (pairs with Start; Esri does not state nesting rules). |
+| *(others)* | Expand/Collapse Container (Rule, By Attribute, By Category), Reduce Junction (Rule, By Attribute, By Category), Reduce Edge By Attribute, Remove Feature (Rule, By Attribute, By Category), Trace, Set Starting Point By Attribute, Connectivity Associations, Structural Attachments, Diagram Feature Capability (By Attribute, By Category). Same parameter shape: Input Network, Input Diagram Template, Active, Description. Parameters and defaults: `learn/16` section 6.3. |
+
+Layout configuration tools (`Add <X> Layout`): Angle Directed, Compression, Force Directed, Grid, Linear Dispatch, Main Ring, Mainline Tree, Partial Overlapping Edges, Radial Tree, Relative Mainline, Reshape Diagram Edges, Smart Tree, Spatial Dispatch, plus Add Diagram Feature Selection To Layout.
+
+## Shipped templates
+Three generic templates ship; Esri calls them limited and recommends custom templates (notably for subnetwork system diagrams).
+- **Basic** (default when none is chosen): Alter Diagram Template (keep initial vertices, enable extend), Connectivity Associations, Structural Attachments. Only one with extend enabled.
+- **ExpandContainers**: Alter (keep vertices), Expand Container, Connectivity Associations, Structural Attachments.
+- **CollapseContainers**: Alter, Expand Container (Junctions only), Connectivity Associations, Collapse Container, Structural Attachments.
+
+## Template deletion
+**Delete Diagram Template** (Standard or Advanced licence) deletes the template and permanently every diagram based on it; same restrictions as other configuration tools.
 
 ### Hard constraints worth flagging in any diagram-configuration answer
 - **Diagram rule configuration tools are not supported against a utility
