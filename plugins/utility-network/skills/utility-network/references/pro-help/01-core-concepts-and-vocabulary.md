@@ -1,4 +1,5 @@
 # Utility Network — Core Concepts & Vocabulary
+> Last reviewed: 2026-10-27 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 *Source: ArcGIS Pro Help, "Utility Network" book (doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/). Licensing section re-verified 2026-09-28 against the FAQ.*
 
 ## What is a utility network?
@@ -40,12 +41,12 @@ REST/JS.
   "Gas Transmission"). A utility network has one or more domain networks, plus the
   single structure network.
   - **Traditional domain network** — general-purpose; features are typically points/lines/junctions with standard connectivity rules.
-  - **Telecom domain network** — specialized for telecom, with divide/combine policies for cabling.
-- **Tier** — organizes a domain network into a hierarchy. Two tier definitions:
+  - **Telecom domain network** — specialized for telecom. It does not support tiers or subnetwork management; circuits are managed with dedicated tools and the Circuit, CircuitSection and Subcircuit tables.
+- **Tier** — segregates and manages a domain network's subnetworks (each tier is a set of subnetworks sharing the same properties and restrictions). The tier definition is chosen when the domain network is added. Two tier definitions:
   - **Partitioned tier definition** — for sequential networks (electrical, telecom).
-    Features belong to exactly one tier; independent tiers.
-  - **Hierarchical tier definition** — tiers nest, and always support disjoint subnetworks.
-- **Subnetwork** — a subset of a tier rooted at one or more subnetwork controllers.
+    Features belong to exactly one tier; independent tiers sit directly in the domain network (no tier group).
+  - **Hierarchical tier definition** — for nested systems (gas, water); tiers reside in tier groups, one feature can belong to several tiers, and disjoint subnetworks are always supported.
+- **Subnetwork** — a connected area within a tier whose features trace back to the same subnetwork controller(s). Not applicable to telecom domain networks.
 - **Disjoint subnetwork** — when subnetwork controllers sharing the same subnetwork
   name cannot be traversed to one another, i.e. the subnetwork is split into
   physically separate pieces that share a name. Configured on the tier's subnetwork
@@ -84,12 +85,12 @@ When a utility network is added to a map:
 - Both single-user and enterprise deployments require **ArcGIS Desktop Standard or
   Advanced** license at minimum.
 - Enterprise deployment additionally requires the portal to be licensed with the
-  **ArcGIS Advanced Editing / Utility Network user type extension** to create,
+  **ArcGIS Advanced Editing user type extension** to create,
   publish, and edit a utility network. **Query and trace operations do not require**
   that user type extension — this matters when scoping what a given app/user needs.
 - Three paths to create/configure a network:
-  1. **Utility Network Foundations** — predefined industry templates (recommended
-     starting point for most orgs).
+  1. **Utility Network Foundations** — predefined industry data models; Esri calls both this and
+     migration best practice, and Foundations suit orgs wanting associations, nonspatial objects and diagrams.
   2. **Utility Network Migration Wizard + Migration toolset** — for migrating an
      existing geometric network or other feature classes into a utility network.
   3. Manual creation with core ArcGIS Pro tools is also possible but is the most
@@ -97,8 +98,8 @@ When a utility network is added to a map:
   Foundations are covered in `08-asset-packages-foundations-migration.md`;
   migration and schema mapping in `11-migration-and-schema-mapping.md`.
 - Enterprise deployments are designed for **service-based editing**; direct database
-  connections are reserved for the initial configuration/QA phase before network
-  topology is enabled and published.
+  connections are used to create/configure the network (which may be nonversioned at that stage) before it is branch versioned and published.
+- Single-user (file/mobile geodatabase) deployments do not use versioned editing; only one person can edit at a time.
 
 ## Where to go next
 - Structure network, domain networks, terminals, tiers, subnetworks → `02-*.md`

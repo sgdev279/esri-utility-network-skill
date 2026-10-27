@@ -1,4 +1,6 @@
 # Utility Network — Esri GitHub Ecosystem (Deep Reference)
+> Last reviewed: 2026-10-27 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+
 *Source: github.com/Esri (organization repos)*
 
 This catalogs the actual Esri-owned GitHub repositories relevant to the
@@ -9,13 +11,12 @@ rather than API documentation.
 
 ## `Esri/Utility-Data-Management-Support-Tools` (UDMS toolbox) — the most valuable of these
 
-A actively-maintained (releases through 3.7.1 for ArcGIS Pro 3.7 as of this
-writing) **geoprocessing toolbox** purpose-built for UN configuration,
+An actively-maintained (version 3.7.2 for ArcGIS Pro 3.7, tag dated Aug 2026, as of 2026-10-27) **geoprocessing toolbox** purpose-built for UN configuration,
 migration, and QA — explicitly used as part of Esri's own **Utility Network
 Foundations** solution deployments. Distributed as an `.atbx` file, added to
 a Pro project like any other toolbox.
 
-Representative tools by toolset (not exhaustive — the toolbox is large and
+The repo page itself only describes the toolbox generally (system tables, batch traces, association lines, linear referencing). The tool names below were **not** re-verified against the repo on 2026-10-27 - verify against the Esri docs for your version / the toolbox itself. Representative tools by toolset (not exhaustive — the toolbox is large and
 actively growing):
 | Toolset | Tool | Purpose |
 |---|---|---|
@@ -39,7 +40,7 @@ audit than the interactive Error Inspector provides.
 
 ## `Esri/utility-network-properties-extractor`
 
-A **C# ArcGIS Pro Add-in** (open source, Apache-2.0) with one-click buttons
+A **C# ArcGIS Pro Add-in** (open source, Apache-2.0; .NET 8, README dated 5/20/2025, targets Pro 3.5 - confirm build compatibility with Pro 3.7) with one-click buttons
 that export **Utility Network, Geodatabase, and Map properties to CSV** —
 plus six additional efficiency tools for map/machine setup. Built against
 layers from feature services, database connections, or file geodatabases;
@@ -53,9 +54,8 @@ network's configuration as CSV for a report or a diff between environments"
 
 A community-oriented repository of **diagrams and modeling patterns** for
 utility data (currently organized with an "Electric" folder), Apache-2.0
-licensed, with an open issue tracker where real-world modeling questions get
-raised (e.g., "wind farm to station with step-up transformer," "two
-generation turbines with step-up transformer") — useful as a **reference
+licensed, with an open issue tracker (about 121 issues on 2026-10-27) where real-world modeling questions get
+raised — useful as a **reference
 library of how to model specific real-world equipment configurations** in
 the UN data model, beyond the abstract data-model rules covered in
 `pro-help/02-*.md` and `pro-help/03-*.md`.
@@ -125,3 +125,10 @@ examples, but always lead with the official Esri sources first.
    routing/Network Analyst.
 5. Flag `Esri/utility-network-sdk` as archived/historical if it comes up in
    search results, and redirect to current sources.
+
+## Sources
+- https://github.com/Esri/Utility-Data-Management-Support-Tools
+- https://github.com/Esri/utility-network-properties-extractor
+- https://github.com/Esri/utility-network-modeling
+- https://github.com/Esri/di-utility-network-export-subnetwork-by-rest
+- https://github.com/Esri/utility-network-sdk/wiki

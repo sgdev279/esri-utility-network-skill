@@ -183,9 +183,10 @@ parts involved, then the code in the target surface (format 3).
 - **Licensing** has one source of truth: `pro-help/10-*.md` (Pro Standard or
   Advanced; Advanced Editing user type extension for create/publish/edit in
   enterprise; none needed for query/trace).
-- **Association types** have one integer encoding (shared by arcpy, the
-  associations table and REST `applyEdits`) and two text encodings (CSV
-  names and REST `associations/query` names); use
+- **Association types** have one integer encoding (the associations table
+  field and arcpy methods) and three text encodings (CSV names, GP keywords,
+  and REST camelCase names, which Esri uses for both `associations/query` and
+  feature-service `applyEdits`: send strings there, not integers); use
   `scripts/association_types.py` rather than recalling codes.
 - **Version-sensitive facts** (parameters added in a given release, patch
   issues) must be stated with their version or date. Files

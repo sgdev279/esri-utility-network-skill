@@ -2,10 +2,13 @@
 """Convert association types between the encodings used across ArcGIS APIs.
 
 Encodings:
-  code   integer in the associations table ASSOCIATIONTYPE field, REST
-         FeatureServer applyEdits, and arcpy.un.UtilityNetwork methods
+  code   integer in the associations table ASSOCIATIONTYPE field and the
+         arcpy.un.UtilityNetwork methods (NOT used in REST applyEdits)
   csv    text used by Import/Export Associations CSV files
-  rest   camelCase names used by UtilityNetworkServer associations/query
+  rest   camelCase names used by UtilityNetworkServer associations/query and
+         by FeatureServer applyEdits on the associations table (Esri's
+         appendix documents associationType as a string there; its own
+         example also shows "connectivity", so test against your service)
   gp     keyword for arcpy.un.ImportAssociations association_type
          (that tool also accepts ALL = all association types; no integer code)
 
@@ -17,7 +20,7 @@ Usage:
 
 Source for the gp keywords:
   https://pro.arcgis.com/en/pro-app/3.6/tool-reference/utility-networks/import-associations.htm
-Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+Last reviewed: 2026-10-27 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 """
 import sys
 

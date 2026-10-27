@@ -261,7 +261,7 @@ Other uses of moments:
 | `async` | 10.9.1; requires `supportsAsyncApplyEdits`; returns `statusUrl` then `resultUrl` |
 | `returnEditMoment` | `editMoment` in the response (ArcGIS Server services) |
 
-The Esri `applyEdits` page does not cover association edits; that is in the UN appendix: write rows to the associations system layer with `useGlobalIds: true`, integer `ASSOCIATIONTYPE` codes, and optional `applyEditsOptions: {"utilityNetworkOptions": 1}` to bypass validation. That option makes writes faster, defers invalid associations to the next validate, and is for trusted bulk loads only (`rest-api/05-*.md`). In the JS SDK use `generateAddAssociations`, `canAddAssociation` and `generateDeleteAssociations` (JS names are `gdbVersion` and `globalIdUsed`; see `js-api/05-editing-associations-validation.md`).
+The Esri `applyEdits` page does not cover association edits; that is in the UN appendix: write rows to the associations system layer with `useGlobalIds: true`, a string `associationType` (camelCase names such as `containment`; Esri documents no integer codes for `applyEdits`), and optional `applyEditsOptions: {"utilityNetworkOptions": 1}` to bypass validation. That option makes writes faster, defers invalid associations to the next validate, and is for trusted bulk loads only (`rest-api/05-*.md`). In the JS SDK use `generateAddAssociations`, `canAddAssociation` and `generateDeleteAssociations` (JS names are `gdbVersion` and `globalIdUsed`; see `js-api/05-editing-associations-validation.md`).
 
 **Typical sequence for an app editing a named version** (Practitioner guidance assembled from the per-operation pages):
 

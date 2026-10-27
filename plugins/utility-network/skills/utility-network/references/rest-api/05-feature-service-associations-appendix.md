@@ -1,4 +1,6 @@
 # Utility Network — REST API: Working with the Utility Network via the Feature Service (Appendix, Deep Reference)
+> Last reviewed: 2026-10-27 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+
 *Source: developers.arcgis.com/rest/services-reference/enterprise/appendix-working-with-the-feature-server-utility-network-server*
 
 This is the practical "how do I actually write an association from my app"
@@ -15,9 +17,9 @@ others) are exposed as ordinary **layers within the `FeatureServer`
 resource**, just with special roles. To find them:
 1. Fetch `.../FeatureServer?f=pjson` and locate **`utilityNetworkLayerId`** in
    the JSON.
-2. Fetch `.../FeatureServer/<utilityNetworkLayerId>?f=pjson` — the utility
-   network layer's own JSON definition groups the related **system layers**
-   (associations, dirty areas, etc.) with their **layer IDs**.
+2. Fetch `.../FeatureServer/<utilityNetworkLayerId>?f=pjson` — read its
+   **`systemLayers`** object, which holds the related system layer IDs
+   (e.g. `associationsTableId`; Esri's example value is 500001).
 3. Use those layer IDs with ordinary feature service operations (`query`,
    `applyEdits`) to read/write that system table directly.
 
@@ -29,28 +31,50 @@ service `query`/`applyEdits` calls.
 ## Writing associations directly via `applyEdits`
 
 `POST .../FeatureServer/applyEdits` (run against the **associations
-systemLayer**, targeting **DEFAULT** version, with `useGlobalIds: true`).
+systemLayer** via its layer id, e.g. `.../FeatureServer/500001/applyEdits` in Esri's example; Esri's examples target the **DEFAULT** version with `useGlobalIds=true`; branch-version/session behaviour is not described on that page - verify against the Esri docs for your version).
 
 ### Association attribute schema (as written via applyEdits)
+Per the Esri appendix, the add syntax uses camelCase keys and a **string**
+`associationType`:
 ```json
 {
-  "ASSOCIATIONTYPE": 1,          // 1=junctionJunctionConnectivity, 2=containment, 3=attachment,
-                                  // 4=junctionEdgeFromConnectivity,
-                                  // 5=junctionEdgeMidspanConnectivity,
-                                  // 6=junctionEdgeToConnectivity
-  "ISCONTENTVISIBLE": 1,         // optional: 0=false, 1=true
-  "FROMNETWORKSOURCEID": 0,
-  "FROMGLOBALID": "{...}",
-  "FROMTERMINAL": 0
-  // ... TO-side equivalents (TONETWORKSOURCEID, TOGLOBALID, TOTERMINAL),
-  // PERCENTALONG for midspan connectivity, and (telecom only) toFirstUnit
+  "associationType": "junctionJunctionConnectivity",
+  "isContentVisible": true,       // optional: false(0) / true(1)
+  "fromNetworkSourceId": 9,
+  "fromGlobalId": "{...}",
+  "fromTerminalId": 1,            // optional; traditional domain networks, junction sources only
+  "toNetworkSourceId": 12,
+  "toGlobalId": "{...}",
+  "toTerminalId": 1,              // optional
+  "percentAlong": 0.5,            // optional; junction-edge midspan connectivity only
+  "toFirstUnit": 6                // optional; telecom containment only
 }
 ```
-These integer codes are the same ones the arcpy `UtilityNetwork` class uses
-(`arcpy/01-*.md`). They differ from the text names in the Import/Export
-Associations CSV (`pro-help/04-*.md`) and the camelCase names in REST
-`associations/query`. `scripts/association_types.py` converts between all
-three.
+- `associationType` values listed by Esri: `attachment`, `containment`,
+  `junctionJunctionConnectivity`, `junctionEdgeFromConnectivity`,
+  `junctionMidspanConnectivity`, `junctionEdgeToConnectivity`. The three
+  edge-based types require **utility network version 4 or higher**.
+- Required vs optional: the page does not label required fields; only
+  terminals, `isContentVisible`, `percentAlong` and `toFirstUnit` are marked
+  optional, so the from/to network source id + globalId and `associationType`
+  are effectively required.
+- The page's own examples are inconsistent (`toterminalId` lowercase,
+  `"associationType": "connectivity"`, `isContentVisible: -1`); follow the
+  syntax block, not the example, and test against your service.
+- Integer association codes (1-6) belong to the geodatabase field and the
+  arcpy `UtilityNetwork` class (`arcpy/01-*.md`); this appendix does **not**
+  document integers for `applyEdits`. Verify against the Esri docs for your
+  version before sending integer codes or upper-case field names
+  (`ASSOCIATIONTYPE`, `FROMGLOBALID`, ...). `scripts/association_types.py`
+  converts between the code, CSV (`pro-help/04-*.md`), REST camelCase and GP
+  encodings.
+- Deleting: Enterprise 12.0+ (capability `supportsDeleteAssociations`) adds a
+  `deleteAssociations` array whose entries need **all** fields (`globalId`,
+  `associationType`, `fromSourceId`, `fromGlobalId`, `fromTerminalId`,
+  `toSourceId`, `toGlobalId`, `toTerminalId`); the older `deletes` list of
+  globalIds is deprecated at 12.0 but still supported for traditional domain
+  networks.
+- Esri states no numeric limits for these edits.
 
 ### Telecom-specific: `toFirstUnit`
 For a **containment association in a telecom domain network**, the
@@ -94,3 +118,6 @@ associations.
 - If someone is bulk-loading associations, proactively mention
   `utilityNetworkOptions: 1` as a speed option **and** the validation
   deferral trade-off in the same breath.
+
+## Sources
+- https://developers.arcgis.com/rest/services-reference/enterprise/appendix-working-with-the-feature-server-utility-network-server/
