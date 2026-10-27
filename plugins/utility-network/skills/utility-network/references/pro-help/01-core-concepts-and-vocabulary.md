@@ -111,3 +111,11 @@ When a utility network is added to a map:
 - Asset packages, Foundations, migration → `08-*.md`
 - Dataset versions, compatibility, upgrades → `09-*.md`
 - Publishing, ownership, licensing, permissions → `10-*.md`
+
+## Sources
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/utility-network-vocabulary.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/faq.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/tiers.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/structure-of-a-utility-network.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/telecom-domain-networks.html
+- https://doc.esri.com/en/arcgis-pro/latest/help/data/utility-network/about-network-topology.html
