@@ -126,6 +126,7 @@ parts involved, then the code in the target surface (format 3).
 | `learn/13-arcgis-pro-fundamentals-and-workflow.md` | Pro anatomy (tab, panes, tables), the ordered build/administer flow with owner and license per step, tool map of the UN toolbox, daily work by role, single-user differences |
 | `learn/14-developer-surfaces-and-sdk-fundamentals.md` | Which API to use, Pro SDK namespace map and threading, concept table across Pro SDK / arcpy / REST / JS, five worked snippets, developer mistakes |
 | `learn/15-editing-in-pro-templates-and-associations.md` | Editing in Pro: panes, snapping and connectivity, feature/group/preset templates, creating associations, testing a rule, keeping data clean while editing |
+| `learn/16-network-diagrams-in-depth.md` | Diagram data model, templates (Basic, ExpandContainers, CollapseContainers), rules and layouts, creating/storing/updating/editing diagrams, admin tasks, NetworkDiagramServer, problems |
 | `learn/17-using-a-un-in-arcgis-enterprise.md` | Enterprise architecture and published services, owners and licences, which clients can do what with versions, publish checklist, file-vs-enterprise decision, admin runbook |
 
 **Concepts & administration (ArcGIS Pro Help)**
