@@ -1,5 +1,5 @@
 # Utility Network: Topology Engine and Validation
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-27 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 *Sources: Esri ArcGIS Pro 3.7 help and tool reference, ArcGIS Enterprise REST reference, Esri blog and Esri Support (full list at the end).*
 
@@ -152,7 +152,7 @@ Fields assigned to network attributes come from `Describe(...).networkAttributes
 
 Sums are meaningful: 9 = modified feature that also has a feature error. Decode any number with `scripts/decode_dirty_status.py` (`--table` prints the bits).
 
-**The rule that surprises people.** During validate, only edit dirty areas, and error dirty areas that also carry an edit bit (1, 2 or 4), are cleaned. **Error-only areas (8, 16, 32, 24, 40...) are ignored.** Mechanism in one line: an error row records that the last evaluation failed; nothing has changed since, so re-evaluating would give the same answer. A new insert, update or delete edit adds an edit bit (8 becomes 9) and that re-queues the feature.
+**The rule that surprises people.** During validate, only edit dirty areas, and error dirty areas that also carry an edit bit (values 1, 2 or 4), are cleaned. (Esri's sentence prints the edit bits as "(0,1,2)"; those are the bit positions 0, 1, 2, which are the values 1, 2, 4 in Esri's own Status table above.) **Error-only areas (8, 16, 32, 24, 40...) are ignored.** Mechanism in one line: an error row records that the last evaluation failed; nothing has changed since, so re-evaluating would give the same answer. A new insert, update or delete edit adds an edit bit (8 becomes 9) and that re-queues the feature.
 
 ```
 Status 8  --validate-->  8   (ignored)

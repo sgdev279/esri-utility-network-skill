@@ -40,7 +40,7 @@ Common misconceptions, Quick checks, Related files, Sources
 | **View** (View Associations Mode) | Utility Network tab > Associations group | Draws association lines in the extent so you can see non-geometric links |
 | **Terminal Connections** / **Terminal Paths** | Utility Network tab > Network Topology group | Open **Modify Terminal Connections** and **Modify Terminal Paths** panes |
 | **Validate** | Utility Network tab > Network Topology group | Clears dirty areas for the current or entire extent |
-| **Error Inspector** | Utility Network tab > Network Topology group (UN version 4+) | Lists topology errors; also the entry for attribute rule evaluation (section 8) |
+| **Error Inspector** | Utility Network tab > Network Topology group (UN version 4+); also Edit tab > Manage Edits group | Lists topology errors; also the entry for attribute rule evaluation (section 8) |
 | **Dirty Areas** sublayer | Under the UN layer in **Contents** | Polygons showing where edit space and topology disagree, and where errors exist |
 | **Network Properties** tab | Right-click the network in Contents > **Properties** | Read-only view of rules, terminal configurations and categories; the first place to check what is allowed |
 
@@ -49,7 +49,7 @@ Esri notes that for enterprise geodatabases most of the Utility Network tab comm
 Two naming traps:
 
 - There is no pane called "Utility Network pane" in Esri documentation (`learn/13`). Ask which pane the user means.
-- "Error Inspector" is reached from two places. Esri's UN pages put it on the **Utility Network** tab, Network Topology group, for topology errors. Esri's attribute rule evaluation page describes it on the **Edit** tab, **Manage Edits** group, with an **Evaluate Rules** section for batch calculation and validation rules. Whether these open exactly the same pane in 3.7: Verify against the Esri docs for your version.
+- "Error Inspector" is reached from two places. Esri's UN pages put it on the **Utility Network** tab, Network Topology group, for topology errors. Esri's attribute rule evaluation page describes it on the **Edit** tab, **Manage Edits** group, with an **Evaluate Rules** section for batch calculation and validation rules. Esri documents both entry points (the Utility Network tab page lists it as the second Network Topology command, needing only a map that references a utility network); it does not say whether they open the same pane, so treat them as one pane reached two ways unless your build shows otherwise.
 
 Example (water). An editor draws a new main segment: **Create Features** pane, template "Water Line", construction tool Line, snapping on. The main ends at an existing valve. The new line shows a dirty area at once; nothing in a trace changes until **Validate**.
 
@@ -112,7 +112,7 @@ Use a connectivity association (section 6): junction-junction (offset points, te
 | Situation | What happens | What the editor does |
 |---|---|---|
 | Device has no terminal configuration (Single Terminal) | Nothing to choose | Snap and validate |
-| Several terminals, exactly one junction-edge rule applies to the line | Validate fills in the line terminal automatically (Esri) | Validate |
+| Several terminals, exactly one junction-edge rule applies to the line | The line connects without a terminal being set (Esri, Modify Terminal Connections page) | Validate |
 | Several terminals, more than one rule applies | Terminal is ambiguous; error 9 at validate | Choose a terminal (below) |
 | Terminal id on the line invalid or missing for the device | Error 36 | Reselect through the pane |
 | Current path of a 3 or 4 terminal device is wrong | Error 39 for invalid path; or a path you need changed | **Modify Terminal Paths** |
@@ -188,14 +188,14 @@ Practitioner guidance: set a template's defaults for the fields that are the sam
 5. **Builders** tab: **Add**, choose a feature template in **Choose a feature template**, choose a builder in **Choose a builder**, set its parameters; to change later hover the secondary template name and use **Edit** or **Delete**. **OK** saves.
 6. **Associations** tab (appears only when the primary template creates a UN feature): tick **Add associations when creating new assets** and click **OK**.
 
-The names of individual builders and their parameters are not enumerated on the Esri pages read for this file: Verify against the Esri docs for your version.
+Esri's Feature builder reference lists the builders: for a point primary, Multiple point features, Radial lines, Buffer; for point or line primaries, Points along, Point at beginning of line, Point at end of line, Point at every intersection, Point at every vertex (and the except start, except end, except start and end variants); for a line primary, Line feature, Offset (Line), Multiple single-part lines, Two-point lines, Buffer; polygon primaries have Point at every vertex, Centroid, Point at start only, boundary line builders, Buffer and Multiple polygon features. Parameters are per builder: see that page.
 
 **What it can create at once.** Features in several layers (devices, lines, junctions, structure points) and their field values from the referenced templates; table rows through embedded table templates; associations between the group's own features when the **Associations** option is ticked. Esri's example from the editing reference is a line group with an attachment as the snapping device.
 
 **Limits (Esri, Practitioner guidance where marked):**
 
 - The association setting applies only to features the group template creates. It does not extend to the contents of preset templates assigned to the group.
-- Which association types are created (containment, structural attachment, connectivity) and between which features is determined by the group's design and the rules; Esri's pages read do not give a list: Verify against the Esri docs for your version.
+- Esri's builder reference states one case: the **Offset (Line)** builder creates a connectivity association between the first point feature and the primary line feature when the features are UN members. For other builders and for containment or structural attachment, Esri's pages give no list: Verify against the Esri docs for your version.
 - Associations are still rule-checked. If a rule or role is missing, an association will not be created even though the features are (Practitioner guidance, consistent with section 6).
 - Geometry-dependent builders cannot place a feature where snapping rules reject it; the features are still created, so check coincidence afterwards (Practitioner guidance).
 - Group templates reference feature templates; if the referenced template is deleted or its layer changes the group breaks (Practitioner guidance).
@@ -345,7 +345,7 @@ Pitfall: testing in DEFAULT. A scratch feature left in the shared version leaves
 
 Esri (dirty areas page): edit dirty areas appear for inserted, updated or deleted features, changed associations and terminal configuration; editing geometry, asset group or asset type fields, network attribute fields, associations or terminals creates them, and a geometry change creates two (old footprint and new). Error dirty areas arise at enable, validate and Update Subnetwork. Non-network attribute edits do not create one (`learn/08` section 10). They are cleared when validate processes them with no errors in the extent. If a topology is disabled one dirty area covers the whole territory. The sublayer is toggleable; areas are created even when it is hidden. Symbolise by `Status`, or by editor tracking fields to see who made the edit, and read `Status Description` in the pop-up.
 
-`Status` is a bit flag (1 inserted/updated, 2 deleted, 4 associated objects modified, 8 feature error, 16 object error, 32 subnetwork error; sums are possible, `learn/03`). One wording point: Esri's dirty areas page says validate processes areas with an edit bit but writes the edit values as "0, 1, or 2", while `pro-help/04` and `learn/03` use 1, 2 and 4. If you must rely on the bit set, read the page for your version and use `scripts/decode_dirty_status.py` (Verify against the Esri docs for your version).
+`Status` is a bit flag (1 inserted/updated, 2 deleted, 4 associated objects modified, 8 feature error, 16 object error, 32 subnetwork error; sums are possible, `learn/03`). Wording point (checked 2026-10-27): Esri's dirty areas page says validate evaluates edit dirty areas or error dirty areas "containing an edit bit (0,1,2)", while its Status table gives 0 = topology disabled and edit values 1, 2, 4. The parenthesis reads as bit positions 0, 1, 2 (values 1, 2, 4), which is what `pro-help/04` and `learn/03` use; Esri does not explain the notation. `scripts/decode_dirty_status.py` decodes values.
 
 ### 8.2 Validate extent choices
 
@@ -359,7 +359,7 @@ The **Validate** command runs synchronously. The `Validate Network Topology` geo
 
 ### 8.3 Editing in versions
 
-Edit in your own branch version, not DEFAULT (`learn/08` sections 1 and 10, `learn/13` section 3.1): create it in the **Versioning** tab, choose **Change to this new version**. Dirty areas live in the version; reconcile re-creates inherited ones, and Esri says inherited dirty areas must be validated before posting. Associations and rules follow the same rules. Rule changes are made on DEFAULT and a named version only sees them after reconcile. Save frequently (**Save** in Manage Edits) so the version, not the session, holds the work.
+Edit in your own branch version, not DEFAULT (`learn/08` sections 1 and 10, `learn/13` section 3.1): create it in the **Versioning** tab, choose **Change to this new version**. Dirty areas live in the version; reconcile re-creates inherited ones, and Esri says validating inherited dirty areas lets you keep working but prevents posting until the version is reconciled again. Associations and rules follow the same rules. Rule changes are made on DEFAULT and a named version only sees them after reconcile. Save frequently (**Save** in Manage Edits) so the version, not the session, holds the work.
 
 ### 8.4 Attribute rules in the editing flow
 

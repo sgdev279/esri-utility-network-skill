@@ -1,7 +1,7 @@
 # Utility Network — Associations, Editing & Error Handling (Deep Reference)
 *Source: ArcGIS Pro Help + Tool Reference, "Utility Network" book*
 
-> Last reviewed: 2026-10-12 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
+> Last reviewed: 2026-10-27 (Pro 3.7 / Enterprise 12.1 / UN dataset v8)
 
 ## Association roles (Container / Structure)
 
@@ -132,8 +132,9 @@ pre-filtered, human-readable error list.
 
 ### Which dirty areas Validate will and won't touch (verified against Esri's Dirty areas and Errors pages)
 Esri: during validation, **only edit dirty areas, or error dirty areas that also
-carry an edit bit (1, 2 or 4), are evaluated to be cleaned. Error dirty areas
-without an edit bit are ignored.** Consequences worth telling users plainly:
+carry an edit bit (values 1, 2 or 4), are evaluated to be cleaned. Error dirty areas
+without an edit bit are ignored.** (Esri's sentence prints the edit bits as "(0,1,2)"; read
+these as bit positions 0, 1, 2, i.e. the values 1, 2, 4 in Esri's Status table. Status 0 means topology is disabled.) Consequences worth telling users plainly:
 
 | Status | Edit bit? | Validate re-evaluates it? | What clears it |
 |---|---|---|---|
@@ -169,7 +170,7 @@ subnetwork definition, then re-validating.
 
 ### Error Inspector pane
 - Opened from the **Utility Network** tab → **Network Topology** group →
-  **Error Inspector** (requires UN version 4 or later). The **Dirty Areas**
+  **Error Inspector** (second command in that group; requires UN version 4 or later per our baseline). Esri's attribute rule evaluation page also opens it from the **Edit** tab > **Manage Edits** group, where it hosts **Evaluate Rules**. The **Dirty Areas**
   sublayer sits under the utility network layer in the **Contents** pane
   (right-click → Attribute Table) for the raw rows, including `Status`.
 - The **Map Extent** filter is on by default (only shows dirty areas with errors
