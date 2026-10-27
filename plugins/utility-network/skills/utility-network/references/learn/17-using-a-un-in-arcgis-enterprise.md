@@ -44,7 +44,7 @@ It does not repeat mechanisms already taught elsewhere: reconcile/post and locki
 |---|---|---|
 | Enterprise geodatabase | Stores the UN dataset, the structure and domain network classes, system tables | Must be branch versioned for the UN to be published (Esri, Pro 3.7 "Publish and consume" topic). Branch registration needs geodatabase release 10.6 or later and a supported DBMS (Db2, SQL Server, Oracle, PostgreSQL or SAP HANA per the registration page) |
 | Registered data store | Lets the server read the database by reference | The database must be registered as a data store and the web layer must "reference registered data" (Esri publish branch versioned data page). Analyze can offer to register it |
-| ArcGIS Server | Hosts the map service and the UN-aware extensions | Esri's older (10.8-era) help states the site you publish to must be federated with the portal; the 12.1 Enterprise "Utility Network services" page does not mention federation. Treat federation as required unless Esri says otherwise: Verify against the Esri docs for your version |
+| ArcGIS Server | Hosts the map service and the UN-aware extensions | Esri's older (10.8-era) help states the site you publish to must be federated with the portal. Checked 2026-10-27: the Enterprise 12.1 "Utility Network services" page, the Pro 3.7 "Publish and consume" topic and the branch-versioned publish page do not mention federation, so a 12.1 requirement is not confirmed or denied by Esri. Practitioner guidance: use a federated server (it is the standard Web GIS pattern and the only one the older help documents) |
 | Portal | Items, identity, licensing, sharing, roles | The signed-in portal account is part of authorisation: it determines the owner, the user type extension and group access |
 | Clients | Everything that calls the services | Each client has its own feature coverage (section 5) |
 
@@ -71,7 +71,7 @@ It does not repeat mechanisms already taught elsewhere: reconcile/post and locki
 
 Facts and limits:
 - Esri: a feature service that includes the UN layer automatically includes the Utility Network and Network Diagram services. A service published *without* the UN layer (plain feature layers) has no Utility Network or Network Diagram service, so no trace and no diagrams, although edits still create dirty areas that are not visible on the map. Version Management is optional in that case (Esri Pro 3.7 "Publish and consume").
-- Esri's "Overview of Utility Network Services" page (read for `rest-api/04`) describes the extension requirement for the utility network and network diagram services as the UN management licensing; the exact licence wording differs by release: Verify against the Esri docs for your version.
+- Esri's "Overview of Utility Network Services" page (read for `rest-api/04`) describes the extension requirement for the utility network and network diagram services as the UN management licensing; the exact licence wording differs by release. For 12.1, Esri's Enterprise page and the Pro 3.7 publish topic say only create, publish and edit need Advanced Editing; query and trace do not (checked 2026-10-27).
 - Each extension reports what it supports in its `capabilities` JSON. Read the flags fresh instead of assuming (`rest-api/01`, `rest-api/04`). The flags tell a script whether, for example, async trace or partial post exist on that server.
 - The `ValidationServer` and `VersionManagementServer` share the service's instance settings; they do not scale independently (`rest-api/04`).
 
@@ -94,18 +94,18 @@ Facts and limits:
 | Query and trace | No extension needed (same page) |
 | Which user types carry Advanced Editing | Included with Professional and Professional Plus; add-on for Mobile Worker, Contributor and Creator (Enterprise 12.1 licensing page, summarised in `pro-help/10`) |
 | Older releases | Through 11.1 separate Utility Network, Trace Network and Parcel Fabric extensions existed; consolidated into Advanced Editing from 11.2 (`pro-help/10`). Esri's 10.8-era page names the "Utility Network user type extension" |
-| Experience Builder trace widget | Esri's widget page states the signed-in account must hold the licence (`experience-builder/01`); that conflicts in spirit with "trace needs no extension" at the service level. Treat as: Verify against the Esri docs for your version before scoping a viewer-only audience |
+| Experience Builder trace widget | Resolved 2026-10-27: the "Utility Network user type extension" requirement appears only on the 11.1 widget page (Esri's developer guide scopes it to services published at 11.1 or earlier). The 12.1 widget page lists no licensing requirement, consistent with "query and trace need no extension" (`experience-builder/01`) |
 | Map Viewer version switching | Esri blog lists an Advanced Editing extension among requirements (11.4 or later) |
 | Version administrator | Not a licence: a role/privilege, section 7 |
 | Error 003049 | Account is not licensed with the user type extension; ask the portal administrator to review the user type or add-on (`pro-help/10`) |
 
-**Practitioner guidance.** Count licences by audience before launch. Viewers who only look at maps need none. Anyone who edits, validates or updates subnetworks needs the extension. Decide early whether trace-only roles use the extension, because the Experience Builder statement and the service-level statement differ.
+**Practitioner guidance.** Count licences by audience before launch. Viewers who only look at maps need none. Anyone who edits, validates or updates subnetworks needs the extension. On 12.1 trace-only roles need no extension; on networks served at 11.1 or earlier, check the Experience Builder 11.1 requirement.
 
 ## 4. Discovering and consuming the data
 
 ### 4.1 Items in the portal
 
-Publishing creates portal items. Verify the exact item types in your portal after publishing; the descriptions below are from Esri's publish topics.
+Publishing creates portal items. Esri's Pro 3.7 and branch-versioned publish topics do not list the item types created (checked 2026-10-27); verify the exact item types in your portal after publishing. The descriptions below are practitioner summary.
 
 | Item | Source | Notes |
 |---|---|---|
@@ -142,9 +142,9 @@ This table is a summary. Clients change by release; each row notes the source. I
 |---|---|---|
 | ArcGIS Pro, Portal tab (full service) | Edit in named versions, validate, update subnetworks, trace, diagrams, create and manage versions, reconcile and post, resolve conflicts (`learn/13`, Esri Pro branch pages) | Admin tasks need database and portal owner connections (`pro-help/10`) |
 | ArcGIS Pro, service without UN layer | Edit; dirty areas created but not drawn | No trace, no diagrams (Esri) |
-| Map Viewer (Enterprise 11.4+ per Esri blog; Enterprise doc page "Access branch versions") | Show a branch versioned layer, switch version with the Version management tool on the Settings toolbar; defaults to the default version when the map opens; one window per branch versioned layer | Does not support traditional versioned data (Esri). Versions do not persist in the saved web map; saving or refreshing resets to default (blog). Esri blog says create and reconcile are done in Pro; the blog is unclear on post from Map Viewer, so treat post from Map Viewer as unconfirmed: Verify against the Esri docs for your version |
-| Field Maps | View connections and structural attachments, containment; named traces online (Enterprise 10.9+); edit geometry and attributes online or offline (Enterprise 11.2+ and the extension); offline supported through a sync-enabled service (summary in `learn/08` section 12, based on a third-party mirror of the Field Maps help: verify on Esri's site) | No UN associations editing, no UN editing tools, connectivity snapping unavailable, connected mode uses the default branch only, **dataset version 8 not supported** (`pro-help/09`) |
-| Experience Builder | Utility Network Trace widget; Branch Version Management widget (`experience-builder/01`) | Validate topology and associations management less mature; same preconditions as the JS widgets |
+| Map Viewer (Enterprise 11.4+ per Esri blog; Enterprise doc page "Access branch versions") | Show a branch versioned layer, switch version with the Version management tool on the Settings toolbar; defaults to the default version when the map opens; one window per branch versioned layer | Does not support traditional versioned data (Esri). Versions do not persist in the saved web map; saving or refreshing resets to default (blog). Esri blog (checked 2026-10-27): create and reconcile are done in Pro; changes can be posted to the default version from Map Viewer, and reconcile is needed first if DEFAULT changed. The Advanced Editing extension is required to see the Version management tool. The Enterprise "Access branch versions" page itself documents switching only |
+| Field Maps | View connections and structural attachments, containment; named traces online (Enterprise 10.9+; tracing is not supported offline per Esri Field Maps help); edit geometry and attributes online or offline (Enterprise 11.2+ and the extension); offline supported through a sync-enabled service (summary in `learn/08` section 12, based on a third-party mirror of the Field Maps help: verify on Esri's site) | No UN associations editing, no UN editing tools, connectivity snapping unavailable, connected mode uses the default branch only, **dataset version 8 not supported** (`pro-help/09`) |
+| Experience Builder | Utility Network Trace widget; Branch Version Editing widget (switch, create, save, undo, reconcile, post). The older Branch Version Management widget is deprecated at Enterprise 12.1 and stops working at 12.2 (`experience-builder/01`) | Validate topology and associations management less mature; same preconditions as the JS widgets |
 | Web AppBuilder | Esri lists it as deprecated in Enterprise since March 2023, last included in Enterprise 11.5; Online retirement Q2 2027 with the replacement being Experience Builder (Esri WAB retirement page) | No UN-specific widgets were found in the sources read. Do not plan new UN apps on it: Verify against the Esri docs for your version |
 | JavaScript SDK apps | Trace, validate, associations, version-aware editing with your own session handling (`js-api/01`, `js-api/05`) | You manage `gdbVersion`, `sessionID` and licence checks (`learn/14`) |
 | Maps SDKs for Native Apps | See `learn/14` | Dataset version 8 not supported (Esri compatibility page) |
@@ -199,7 +199,7 @@ Flow (the same in every client; the buttons differ):
 | Validate | Validate Topology | No | Not in the app; edits leave dirty areas for Pro | `validateNetworkTopology` with the session |
 | Reconcile | Versioning tab Reconcile; Reconcile/Post button in Versions view; Reconcile Versions geoprocessing tool | Not available (Esri blog) | Replica version: an administrator reconciles in Pro | `reconcile` (needs an exclusive lock, you must be the only user) |
 | Resolve | Conflicts view / Conflict Manager | No | No | `conflicts`, `inspectConflicts`, `differences` |
-| Post | Post button; fails if DEFAULT changed since the reconcile | See table above: unconfirmed | Admin posts the replica version in Pro | `post` with the same `sessionId` as the reconcile |
+| Post | Post button; fails if DEFAULT changed since the reconcile | Per the Esri blog, changes can be posted to DEFAULT from Map Viewer (reconcile first in Pro) | Admin posts the replica version in Pro | `post` with the same `sessionId` as the reconcile |
 | Delete | Delete in Versions view | No | Replica versions cannot be deleted while an offline map references them | `delete` |
 
 Conflict rules (Esri Pro "Reconcile and post"): target is always the default version; conflicts are resolved in favour of the edit version by default; the Reconcile dialog lets you define conflicts **by attribute** (default) or **by object**; an optional field conflict filter excludes fields from attribute-level detection. Reconcile warns about unreviewed conflicts; undo and discard cannot revert changes made after a reconcile completes. Post cannot be undone. Edits made after a post require reconcile, review and post again. Conflict by object on a UN is stricter: topologically related features can conflict in ways a plain attribute merge will not resolve (`learn/08` section 6, `pro-help/06`).
@@ -335,7 +335,7 @@ Heuristic (Practitioner guidance): if more than one person will ever edit, or an
 Each step: action, owner/licence, verification. Cross-reference for tool names is `learn/13` section 4.
 
 1. **Plan the audience.** List roles: viewer, trace analyst, editor, QA, version admin, field, contractor. Decide which need Advanced Editing. Decide the services shapes (section 2). Verify: licence count and group design written down.
-2. **Prepare the platform.** Federated server, portal, supported enterprise geodatabase and DBMS version; install patches. Verify: Esri system requirements for your release; Enterprise 12.1 for dataset v8.
+2. **Prepare the platform.** Federated server (practitioner guidance, see section 1), portal, supported enterprise geodatabase and DBMS version; install patches. Verify: Esri system requirements for your release; Enterprise 12.1 for dataset v8.
 3. **Create the data owner and database connection.** Branch versioning type on the connection. Verify: connection properties show Branch.
 4. **Choose the dataset version.** v7 default; v8 only for telecom or when needed; check client support (`pro-help/09`). Verify: client matrix signed off.
 5. **Build the network in Pro** (Asset Package or manual), as the database owner with the portal owner signed in: `learn/13` section 2. Verify: Network Properties show configuration.
@@ -357,8 +357,8 @@ Maintenance windows: tasks that need an exclusive lock (upgrade, schema changes,
 | Misconception | Correction |
 |---|---|
 | "Publishing the UN means publishing one feature service" | A feature service with the UN layer brings Utility Network and Network Diagram services; Version Management is a further capability; validation is an extension (sections 2, 8) |
-| "Trace users need an Advanced Editing licence" | Esri says query and trace do not need it; the Experience Builder page states otherwise for its widget, so confirm per app (section 3) |
-| "Map Viewer can do the whole edit-reconcile-post cycle" | Per Esri's blog it switches versions; create and reconcile are in Pro; post from Map Viewer is unconfirmed (section 5) |
+| "Trace users need an Advanced Editing licence" | Esri says query and trace do not need it on 12.1; the Experience Builder licence statement appears only on the 11.1 widget page (section 3) |
+| "Map Viewer can do the whole edit-reconcile-post cycle" | Per Esri's blog it switches versions; create and reconcile are in Pro; the Esri blog says post to DEFAULT is available in Map Viewer (section 5) |
 | "A web map remembers its version" | Versions do not persist; saving or refreshing resets to default (Esri blog) |
 | "Protecting DEFAULT blocks all editing" | It forces edits into named versions; it also blocks Field Maps connected mode, which reaches the default branch only |
 | "Group sharing is only about visibility" | Sharing to a shared update group makes members version administrators (Esri) |
